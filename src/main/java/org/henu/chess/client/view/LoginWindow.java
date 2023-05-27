@@ -18,9 +18,11 @@ public class LoginWindow {
     private JPanel panelCreateRoom;
     private JPanel panelJoinRoom;
     private JButton btnCreateRoom;
-    private JTextField textField;
+    private JTextField txtRoomID;
     private JLabel lblRoomNumber;
     private JButton btnJoinRoom;
+    private JLabel lblUserName;
+    private JTextField txtUserName;
 
     /**
      * Launch the application.
@@ -62,22 +64,32 @@ public class LoginWindow {
         panelServerInfo.setLayout(null);
 
         lblIPAddress = new JLabel("IP 地址");
-        lblIPAddress.setBounds(10, 24, 38, 14);
+        lblIPAddress.setBounds(10, 24, 36, 14);
         panelServerInfo.add(lblIPAddress);
 
         txtIPAddress = new JTextField();
-        txtIPAddress.setBounds(56, 21, 245, 20);
+        txtIPAddress.setText("127.0.0.1");
+        txtIPAddress.setBounds(56, 21, 112, 20);
         panelServerInfo.add(txtIPAddress);
         txtIPAddress.setColumns(10);
 
         lblPort = new JLabel("端口号");
-        lblPort.setBounds(311, 24, 39, 14);
+        lblPort.setBounds(189, 24, 39, 14);
         panelServerInfo.add(lblPort);
 
         txtPort = new JTextField();
-        txtPort.setBounds(360, 21, 83, 20);
+        txtPort.setBounds(229, 21, 83, 20);
         panelServerInfo.add(txtPort);
         txtPort.setColumns(10);
+
+        lblUserName = new JLabel("用户名");
+        lblUserName.setBounds(334, 24, 48, 14);
+        panelServerInfo.add(lblUserName);
+
+        txtUserName = new JTextField();
+        txtUserName.setBounds(370, 21, 83, 20);
+        panelServerInfo.add(txtUserName);
+        txtUserName.setColumns(10);
 
         panelCreateRoom = new JPanel();
         panelCreateRoom.setBorder(new TitledBorder(null, "创建房间", TitledBorder.LEADING, TitledBorder.TOP, null, null));
@@ -95,10 +107,10 @@ public class LoginWindow {
         frame.getContentPane().add(panelJoinRoom);
         panelJoinRoom.setLayout(null);
 
-        textField = new JTextField();
-        textField.setBounds(102, 41, 96, 20);
-        panelJoinRoom.add(textField);
-        textField.setColumns(10);
+        txtRoomID = new JTextField();
+        txtRoomID.setBounds(102, 41, 96, 20);
+        panelJoinRoom.add(txtRoomID);
+        txtRoomID.setColumns(10);
 
         lblRoomNumber = new JLabel("房间号");
         lblRoomNumber.setBounds(52, 44, 48, 14);
@@ -107,5 +119,49 @@ public class LoginWindow {
         btnJoinRoom = new JButton("加入房间");
         btnJoinRoom.setBounds(75, 82, 89, 23);
         panelJoinRoom.add(btnJoinRoom);
+    }
+
+    public JTextField getIPAddressTextField() {
+        return txtIPAddress;
+    }
+
+    public JTextField getPortTextField() {
+        return txtPort;
+    }
+
+    public JTextField getRoomIDTextField() {
+       return txtRoomID;
+    }
+
+    public JTextField getUserNameTextField() {
+        return txtUserName;
+    }
+
+    public JButton getCreateRoomButton() {
+        return btnCreateRoom;
+    }
+
+    public JButton getJoinRoomButton() {
+        return btnJoinRoom;
+    }
+
+    public void showErrorMessageBox(String content, String title) {
+        JOptionPane.showMessageDialog(frame, content, title, JOptionPane.ERROR_MESSAGE);
+    }
+
+    public void showInfoMessageBox(String content, String title) {
+        JOptionPane.showMessageDialog(frame, content, title, JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    public void show() {
+        frame.setVisible(true);
+    }
+
+    public void close() {
+        frame.setVisible(false);
+    }
+
+    public void dispose() {
+        frame.dispose();
     }
 }

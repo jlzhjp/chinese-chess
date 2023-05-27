@@ -3,11 +3,10 @@ package org.henu.chess.common;
 import java.io.*;
 import java.net.Socket;
 import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 
 
-public class SocketListener implements AutoCloseable {
+public class SocketReceiver implements AutoCloseable {
     public interface SocketMessageHandler {
         void handle(String message);
     }
@@ -15,7 +14,7 @@ public class SocketListener implements AutoCloseable {
     private final Socket socket;
     private final PrintWriter writer;
 
-    public SocketListener(String ip, int port) throws IOException {
+    public SocketReceiver(String ip, int port) throws IOException {
         this.socket = new Socket(ip, port);
         this.writer = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8)));
     }
@@ -26,11 +25,14 @@ public class SocketListener implements AutoCloseable {
      * @param handler Socket 消息处理器
      */
     public void listen(SocketMessageHandler handler) {
+        var that = this;
         new Thread(() -> {
             try (var reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
-                    handler.handle(line);
+                    synchronized (that) {
+                        handler.handle(line);
+                    }
                 }
             } catch (SocketException ex) {
                 // 当 Socket 被关闭时会抛出 SocketException

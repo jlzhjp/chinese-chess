@@ -33,13 +33,19 @@ public class Message {
         } else if (className.equals(JoinRoomRequest.class.getName())) {
             JoinRoomRequest joinRoomRequest = new JoinRoomRequest();
             parsePartialRequest(jsonObject, joinRoomRequest);
-            joinRoomRequest.setName(jsonObject.get("name").getAsString());
             return joinRoomRequest;
 
         } else if (className.equals(JoinRoomResponse.class.getName())) {
             JoinRoomResponse joinRoomResponse = new JoinRoomResponse();
             parsePartialResponse(jsonObject, joinRoomResponse);
             return joinRoomResponse;
+
+        } else if (className.equals(StartGameResponse.class.getName())) {
+            StartGameResponse startGameResponse = new StartGameResponse();
+            parsePartialResponse(jsonObject, startGameResponse);
+            startGameResponse.setRedPlayerName(jsonObject.get("redPlayerName").getAsString());
+            startGameResponse.setBlackPlayerName(jsonObject.get("blackPlayerName").getAsString());
+            return startGameResponse;
 
         } else if (className.equals(MovePieceRequest.class.getName())) {
             MovePieceRequest movePieceRequest = new MovePieceRequest();
@@ -59,7 +65,13 @@ public class Message {
             gameOverResponse.setWinner(jsonObject.get("winner").getAsString());
             return gameOverResponse;
 
-        } else {
+        } else if (className.equals(CheckMateResponse.class.getName())) {
+            CheckMateResponse checkMateResponse = new CheckMateResponse();
+            parsePartialResponse(jsonObject, checkMateResponse);
+            return checkMateResponse;
+        }
+
+        else {
             throw new RuntimeException("Unknown message type: " + className);
         }
     }

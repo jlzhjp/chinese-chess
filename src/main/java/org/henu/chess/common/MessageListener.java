@@ -4,7 +4,7 @@ import org.henu.chess.common.messages.Message;
 import org.henu.chess.common.messages.request.*;
 import org.henu.chess.common.messages.response.*;
 
-public abstract class MessageListener {
+public class MessageListener {
     public void onMessage(Message message) {
         if (message instanceof Request) {
             onRequest((Request) message);
@@ -13,7 +13,9 @@ public abstract class MessageListener {
         }
     }
 
-    public abstract void onRequest(Request request);
+    public void onRequest(Request request) {
+    }
 
-    public abstract void onResponse(Response response);
+    public void onResponse(Response response) {
+    }
 }

@@ -1,101 +1,41 @@
-package org.henu.chess.client.view;
+package org.henu.chess.client.controller;
 
-import com.formdev.flatlaf.FlatLightLaf;
+import org.henu.chess.client.model.GameInfo;
+import org.henu.chess.client.view.ChessWindow;
+import org.henu.chess.common.SocketMessageReceiver;
+import org.henu.chess.common.messages.request.MovePieceRequest;
 import org.henu.chess.common.model.ChessBoardPoint;
+import org.henu.chess.common.model.ChessLogicImpl;
+import org.henu.chess.common.model.ChessPanelModel;
 import org.henu.chess.common.model.Piece;
-import org.henu.chess.common.view.ChessPanel;
 
-import java.awt.*;
 import java.util.Objects;
 
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.border.TitledBorder;
-import javax.swing.JLabel;
+public class ChessViewController {
+    ChessPanelModel chessModel;
+    ChessWindow view;
 
-public class ClientWindow {
-    private boolean isRed = true;
+    GameInfo gameInfo;
 
-    private JFrame frame;
-    private ChessPanel chessPanel;
-    private JScrollPane scrollPane;
-    private JTextArea txtLog;
-    private JPanel logWrapper;
-    private JPanel userInfoWrapper;
-    private JLabel lblRed;
-    private JLabel lblBlack;
+    SocketMessageReceiver receiver;
 
-    /**
-     * Launch the application.
-     */
-    public static void main(String[] args) {
-        EventQueue.invokeLater(() -> {
-            try {
-                FlatLightLaf.setup();
-                ClientWindow window = new ClientWindow();
-                window.frame.setVisible(true);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
+    boolean canMove;
+
+    public ChessViewController(ChessWindow view, GameInfo gameInfo, SocketMessageReceiver receiver) {
+        this.view = view;
+        this.chessModel = new ChessPanelModel(new ChessLogicImpl());
+        this.gameInfo = gameInfo;
+        this.receiver = receiver;
+
+        this.view.getRedPlayerLabel().setText("红方: " + gameInfo.getRedPlayer());
+        this.view.getBlackPlayerLabel().setText("黑方: " + gameInfo.getBlackPlayer());
+
+        initializeChessModel(chessModel);
+        view.getChessPanel().setModel(chessModel);
     }
 
-    /**
-     * Create the application.
-     */
-    public ClientWindow() {
-        initialize();
-    }
-
-    /**
-     * Initialize the contents of the frame.
-     */
-    private void initialize() {
-        frame = new JFrame();
-        frame.setResizable(false);
-        frame.setBounds(100, 100, 923, 651);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.getContentPane().setLayout(null);
-
-        chessPanel = new ChessPanel();
-        chessPanel.setBounds(10, 11, 600, 600);
-        frame.getContentPane().add(chessPanel);
-
-        logWrapper = new JPanel();
-        logWrapper.setBorder(new TitledBorder(null, "对局记录", TitledBorder.LEADING, TitledBorder.TOP, null, null));
-        logWrapper.setBounds(620, 113, 281, 492);
-        frame.getContentPane().add(logWrapper);
-        logWrapper.setLayout(new BorderLayout(0, 0));
-
-        scrollPane = new JScrollPane();
-        logWrapper.add(scrollPane);
-
-        txtLog = new JTextArea();
-        txtLog.setEditable(false);
-        scrollPane.setViewportView(txtLog);
-
-        userInfoWrapper = new JPanel();
-        userInfoWrapper.setBorder(new TitledBorder(null, "棋手信息", TitledBorder.LEADING, TitledBorder.TOP, null, null));
-        userInfoWrapper.setBounds(620, 11, 281, 91);
-        frame.getContentPane().add(userInfoWrapper);
-        userInfoWrapper.setLayout(null);
-
-        lblRed = new JLabel("红方：");
-        lblRed.setBounds(10, 31, 261, 14);
-        userInfoWrapper.add(lblRed);
-
-        lblBlack = new JLabel("黑方：");
-        lblBlack.setBounds(10, 56, 261, 14);
-        userInfoWrapper.add(lblBlack);
-
-        initializeChessPanel();
-    }
-
-    public void initializeChessPanel() {
-        var model = chessPanel.getModel();
-        if (isRed) {
+    private void initializeChessModel(ChessPanelModel model) {
+        if (gameInfo.isRed()) {
             model.put(new ChessBoardPoint(0, 9), Piece.RED_CHARIOT);
             model.put(new ChessBoardPoint(1, 9), Piece.RED_HORSE);
             model.put(new ChessBoardPoint(2, 9), Piece.RED_ELEPHANT);
@@ -165,12 +105,37 @@ public class ClientWindow {
             model.put(new ChessBoardPoint(8, 6), Piece.BLACK_SOLDIER);
         }
 
-        chessPanel.setListener(point ->{
-            Piece selectedPiece = model.pieceAt(point);
-            if (Objects.nonNull(selectedPiece) && selectedPiece.isRed() == isRed) {
-                model.select(point);
-            }
-        });
+        view.getChessPanel().setListener(this::handleChessPanelClick);
     }
 
+    private void handleChessPanelClick(ChessBoardPoint point) {
+        if (!canMove) {
+            return;
+        }
+
+        Piece selectedPiece = chessModel.pieceAt(point);
+
+        if (point.equals(chessModel.getSelectedPoint())) {
+            chessModel.unselect();
+        } else if (Objects.nonNull(selectedPiece) && selectedPiece.isRed() == gameInfo.isRed()) {
+            chessModel.select(point);
+        } else if (Objects.nonNull(chessModel.getSelectedPoint()) && chessModel.getAvailableMoves().contains(point)) {
+            var from = chessModel.getSelectedPoint();
+
+            chessModel.move(from, point);
+            chessModel.unselect();
+            requestMove(from, point);
+        } else {
+            chessModel.unselect();
+        }
+    }
+
+    private void requestMove(ChessBoardPoint from, ChessBoardPoint to) {
+        MovePieceRequest request = new MovePieceRequest();
+
+        request.setFrom(from);
+        request.setTo(to);
+
+        this.receiver.send(request);
+    }
 }

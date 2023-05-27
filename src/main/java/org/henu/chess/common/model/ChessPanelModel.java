@@ -52,6 +52,20 @@ public class ChessPanelModel extends Model {
         raisePropertyChange("pieces", null, pieces);
     }
 
+    public void move(ChessBoardPoint from, ChessBoardPoint to) {
+        Piece piece = pieces.get(from);
+        pieces.remove(from);
+        pieces.put(to, piece);
+        raisePropertyChange("pieces", null, pieces);
+    }
+
+    public void unselect() {
+        selectedPoint = null;
+        availableMoves.clear();
+        raisePropertyChange("selectedPoint", null, null);
+        raisePropertyChange("availablePoints", null, availableMoves);
+    }
+
     public List<ChessBoardPoint> getAvailablePointForPieceAt(ChessBoardPoint point) {
         return logic.getAvailablePointForPieceAt(pieces, point);
     }

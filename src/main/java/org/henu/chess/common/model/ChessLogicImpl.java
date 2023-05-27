@@ -34,28 +34,24 @@ public final class ChessLogicImpl implements ChessLogic {
     }
 
     private List<ChessBoardPoint> getAvailablePointForGeneral(Map<ChessBoardPoint, Piece> pieces, ChessBoardPoint point) {
-        List<ChessBoardPoint> moves = new ArrayList<>();
-        Piece piece = pieces.get(point);
+        ArrayList<ChessBoardPoint> moves = new ArrayList<>();
+        Piece piece =pieces.get(point);
 
         int x = point.getX();
         int y = point.getY();
 
-        if (piece.isRed()) {
-            for (int i = x - 1; i <= x + 1; i++) {
-                for (int j = y - 1; j <= y + 1; j++) {
-                    if (i >= 3 && i <= 5 && j >= 0 && j <= 2) {
-                        moves.add(new ChessBoardPoint(i, j));
-                    }
-                }
-            }
-        } else {
-            for (int i = x - 1; i <= x + 1; i++) {
-                for (int j = y - 1; j <= y + 1; j++) {
-                    if (i >= 3 && i <= 5 && j >= 7 && j <= 9) {
-                        moves.add(new ChessBoardPoint(i, j));
-                    }
-                }
-            }
+        if (x - 1 >= 3) {
+            addPoint(moves, x - 1, y, pieces, piece.isRed());
+        }
+        if (x + 1 <= 5) {
+            addPoint(moves, x + 1, y, pieces, piece.isRed());
+        }
+
+        if (y - 1 >= BOARD_HEIGHT - 3) {
+            addPoint(moves, x, y - 1, pieces, piece.isRed());
+        }
+        if (y + 1 < BOARD_HEIGHT) {
+            addPoint(moves, x, y + 1, pieces, piece.isRed());
         }
 
         return moves;
@@ -63,28 +59,18 @@ public final class ChessLogicImpl implements ChessLogic {
 
     private List<ChessBoardPoint> getAvailablePointForGuard(Map<ChessBoardPoint, Piece> pieces, ChessBoardPoint point) {
         ArrayList<ChessBoardPoint> moves = new ArrayList<>();
-        Piece piece = pieces.get(point);
+        Piece piece =pieces.get(point);
 
         int x = point.getX();
         int y = point.getY();
 
-        if (piece.isRed()) {
-            for (int i = x - 1; i <= x + 1; i += 2) {
-                for (int j = y - 1; j <= y + 1; j += 2) {
-                    if (i >= 3 && i <= 5 && j >= 0 && j <= 2) {
-                        moves.add(new ChessBoardPoint(i, j));
-                    }
-                }
-            }
-        } else {
             for (int i = x - 1; i <= x + 1; i += 2) {
                 for (int j = y - 1; j <= y + 1; j += 2) {
                     if (i >= 3 && i <= 5 && j >= 7 && j <= 9) {
-                        moves.add(new ChessBoardPoint(i, j));
+                        addPoint(moves, i, j, pieces, piece.isRed());
                     }
                 }
             }
-        }
 
         return moves;
     }
@@ -94,26 +80,17 @@ public final class ChessLogicImpl implements ChessLogic {
         int y = point.getY();
 
         Piece piece = pieces.get(point);
-        boolean isRed = piece.isRed();
 
         ArrayList<ChessBoardPoint> moves = new ArrayList<>();
 
-        int[][] elephantMoves = {{-2, -2}, {-2, 2}, {2, -2}, {2, 2}};
         int[][] checkPoints = {{-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
 
-        for (int i = 0; i < elephantMoves.length; ++i) {
-            int[] move = elephantMoves[i];
-            int dx = move[0];
-            int dy = move[1];
-            int newX = x + dx;
-            int newY = y + dy;
-
-            if (isRed && newY < 5 || !isRed && newY >= 5) {
-                int checkX = checkPoints[i][0];
-                int checkY = checkPoints[i][1];
-
-                if (!pieces.containsKey(new ChessBoardPoint(checkX, checkY))) {
-                    addToListIfValid(moves, new ChessBoardPoint(newX, newY), pieces, isRed);
+        for (var checkPoint: checkPoints) {
+            if (noPiece(pieces, x + checkPoint[0], y + checkPoint[1])) {
+                int newX = point.getX() + checkPoint[0] * 2;
+                int newY = point.getY() + checkPoint[1] * 2;
+                if (newY >= 5) {
+                    addPoint(moves, newX, newY, pieces, piece.isRed());
                 }
             }
         }
@@ -146,15 +123,15 @@ public final class ChessLogicImpl implements ChessLogic {
             int checkX = checkPoint[0];
             int checkY = checkPoint[1];
 
-            if (!pieces.containsKey(new ChessBoardPoint(checkX, checkY))) {
+            if (noPiece(pieces, x + checkX, y + checkY)) {
                 assert checkY == 0 || checkX == 0;
 
                 if (checkX == 0) {
-                    addToListIfValid(moves, new ChessBoardPoint(x - 1, y + checkY * 2), pieces, isRed);
-                    addToListIfValid(moves, new ChessBoardPoint(x + 1, y + checkY * 2), pieces, isRed);
+                    addPoint(moves, x - 1, y + checkY * 2, pieces, isRed);
+                    addPoint(moves, x + 1, y + checkY * 2, pieces, isRed);
                 } else {
-                    addToListIfValid(moves, new ChessBoardPoint(x + checkX * 2, y - 1), pieces, isRed);
-                    addToListIfValid(moves, new ChessBoardPoint(x + checkX * 2, y + 1), pieces, isRed);
+                    addPoint(moves, x + checkX * 2, y - 1, pieces, isRed);
+                    addPoint(moves, x + checkX * 2, y + 1, pieces, isRed);
                 }
             }
         }
@@ -162,32 +139,135 @@ public final class ChessLogicImpl implements ChessLogic {
         return moves;
     }
 
+    // 获取车的可走位置
     private List<ChessBoardPoint> getAvailablePointForChariot(Map<ChessBoardPoint, Piece> pieces, ChessBoardPoint point) {
-        return new ArrayList<>();
+        ArrayList<ChessBoardPoint> moves = new ArrayList<>();
+        Piece piece = pieces.get(point);
+        boolean isRed = piece.isRed();
+
+        int x = point.getX();
+        int y = point.getY();
+
+        addDirectionForChariot(moves, x, y, -1, 0, pieces, isRed);
+        addDirectionForChariot(moves, x, y, 1, 0, pieces, isRed);
+        addDirectionForChariot(moves, x, y, 0, -1, pieces, isRed);
+        addDirectionForChariot(moves, x, y, 0, 1, pieces, isRed);
+
+        return moves;
     }
 
+    // 获取炮的可走位置
     private List<ChessBoardPoint> getAvailablePointForCannon(Map<ChessBoardPoint, Piece> pieces, ChessBoardPoint point) {
-        return new ArrayList<>();
+        ArrayList<ChessBoardPoint> moves = new ArrayList<>();
+        Piece piece = pieces.get(point);
+        boolean isRed = piece.isRed();
+
+        int x = point.getX();
+        int y = point.getY();
+
+        addDirectionForCannon(moves, x, y, -1, 0, pieces, isRed, true);
+        addDirectionForCannon(moves, x, y, 1, 0, pieces, isRed, true);
+        addDirectionForCannon(moves, x, y, 0, -1, pieces, isRed, true);
+        addDirectionForCannon(moves, x, y, 0, 1, pieces, isRed, true);
+
+        return moves;
     }
 
+    // 获取兵可以到达的点
     private List<ChessBoardPoint> getAvailablePointForSoldier(Map<ChessBoardPoint, Piece> pieces, ChessBoardPoint point) {
-        return new ArrayList<>();
-    }
+        ArrayList<ChessBoardPoint> moves = new ArrayList<>();
+        Piece piece = pieces.get(point);
+        boolean isRed = piece.isRed();
 
-    private void addToListIfValid(ArrayList<ChessBoardPoint> points, ChessBoardPoint p, Map<ChessBoardPoint, Piece> pieces, boolean isRed) {
-        if (p.getX() < 0 || p.getX() >= BOARD_WIDTH || p.getY() < 0 || p.getY() >= BOARD_HEIGHT) {
-            return;
+        int x = point.getX();
+        int y = point.getY();
+
+        if (y >= 5) {
+            addPoint(moves, x, y - 1, pieces, isRed);
+        } else {
+            addPoint(moves, x, y - 1, pieces, isRed);
+            addPoint(moves, x - 1, y, pieces, isRed);
+            addPoint(moves, x + 1, y, pieces, isRed);
         }
 
-        Piece pieceAtTargetPoint = pieces.get(p);
+        return moves;
+    }
 
-        if (pieceAtTargetPoint == null) {
-            points.add(p);
-        } else {
-            if (pieceAtTargetPoint.isRed() != isRed) {
-                points.add(p);
+    private Piece pieceAt(Map<ChessBoardPoint, Piece> pieces, int x, int y) {
+        return pieces.get(new ChessBoardPoint(x, y));
+    }
+
+    private boolean noPiece(Map<ChessBoardPoint, Piece> pieces, int x, int y) {
+        return pieceAt(pieces, x, y) == null;
+    }
+
+
+    private void addDirectionForChariot(ArrayList<ChessBoardPoint> moves, int startX, int startY, int dx, int dy, Map<ChessBoardPoint, Piece> pieces, boolean isRed) {
+        int x = startX;
+        int y = startY;
+
+        while (true) {
+            x += dx;
+            y += dy;
+
+            if (x < 0 || x >= BOARD_WIDTH || y < 0 || y >= BOARD_HEIGHT) {
+                break;
+            }
+
+            Piece piece = pieceAt(pieces, x, y);
+
+            addPoint(moves, x, y, pieces, isRed);
+
+            if (piece != null) {
+                break;
             }
         }
     }
 
+    private void addDirectionForCannon(ArrayList<ChessBoardPoint> moves, int startX, int startY, int dx, int dy, Map<ChessBoardPoint, Piece> pieces, boolean isRed, boolean includePath) {
+        int x = startX;
+        int y = startY;
+
+        while (true) {
+            x += dx;
+            y += dy;
+
+            if (x < 0 || x >= BOARD_WIDTH || y < 0 || y >= BOARD_HEIGHT) {
+                break;
+            }
+
+            Piece piece = pieceAt(pieces, x, y);
+
+            if (includePath) {
+                if (piece == null) {
+                    moves.add(new ChessBoardPoint(x, y));
+                } else {
+                    addDirectionForCannon(moves, x + dx, y + dy, dx, dy, pieces, isRed, false);
+                    break;
+                }
+            } else {
+                if (piece != null) {
+                    addPoint(moves, x, y, pieces, isRed);
+                    break;
+                }
+            }
+        }
+    }
+
+    private void addPoint(ArrayList<ChessBoardPoint> moves, int x, int y, Map<ChessBoardPoint, Piece> pieces, boolean isRed) {
+        if (x < 0 || x >= BOARD_WIDTH || y < 0 || y >= BOARD_HEIGHT) {
+            return;
+        }
+
+        ChessBoardPoint p = new ChessBoardPoint(x, y);
+        Piece pieceAtTargetPoint = pieces.get(p);
+
+        if (pieceAtTargetPoint == null) {
+            moves.add(p);
+        } else {
+            if (pieceAtTargetPoint.isRed() != isRed) {
+                moves.add(p);
+            }
+        }
+    }
 }

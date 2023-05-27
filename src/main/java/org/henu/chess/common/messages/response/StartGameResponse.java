@@ -1,22 +1,22 @@
 package org.henu.chess.common.messages.response;
 
-public class StartGameResponse {
-    private String redSideUserName;
+public class StartGameResponse extends Response {
+    private String redPlayerName;
 
-    private String blackSideUserName;
+    private String blackPlayerName;
 
-    public String getRedSideUserName() {
-        return redSideUserName;
+    public String getRedPlayerName() {
+        return redPlayerName;
     }
-    public void setRedSideUserName(String redSideUserName) {
-        this.redSideUserName = redSideUserName;
-    }
-
-    public String getBlackSideUserName() {
-        return blackSideUserName;
+    public void setRedPlayerName(String redPlayerName) {
+        this.redPlayerName = redPlayerName;
     }
 
-    public void setBlackSideUserName(String blackSideUserName) {
-        this.blackSideUserName = blackSideUserName;
+    public String getBlackPlayerName() {
+        return blackPlayerName;
+    }
+
+    public void setBlackPlayerName(String blackPlayerName) {
+        this.blackPlayerName = blackPlayerName;
     }
 }
