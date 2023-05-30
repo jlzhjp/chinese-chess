@@ -17,6 +17,14 @@ public class SocketMessageReceiver implements AutoCloseable {
         this.listener = listener;
     }
 
+    public int getPort() {
+        return socketReceiver.getPort();
+    }
+
+    public String getIPAddress() {
+        return socketReceiver.getIPAddress();
+    }
+
     public void listen() {
         socketReceiver.listen(message -> {
             if (Objects.nonNull(listener)) {

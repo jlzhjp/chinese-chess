@@ -64,12 +64,13 @@ public class LoginWindow {
         panelServerInfo.setLayout(null);
 
         lblIPAddress = new JLabel("IP 地址");
-        lblIPAddress.setBounds(10, 24, 36, 14);
+        lblIPAddress.setBounds(10, 24, 40, 14);
         panelServerInfo.add(lblIPAddress);
 
         txtIPAddress = new JTextField();
+        txtIPAddress.setEditable(false);
         txtIPAddress.setText("127.0.0.1");
-        txtIPAddress.setBounds(56, 21, 112, 20);
+        txtIPAddress.setBounds(58, 21, 112, 20);
         panelServerInfo.add(txtIPAddress);
         txtIPAddress.setColumns(10);
 
@@ -78,6 +79,7 @@ public class LoginWindow {
         panelServerInfo.add(lblPort);
 
         txtPort = new JTextField();
+        txtPort.setEditable(false);
         txtPort.setBounds(229, 21, 83, 20);
         panelServerInfo.add(txtPort);
         txtPort.setColumns(10);

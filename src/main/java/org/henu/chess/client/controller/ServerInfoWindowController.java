@@ -33,6 +33,7 @@ public class ServerInfoWindowController {
 
         try {
              receiver = new SocketMessageReceiver(serverIPAddress, port);
+             receiver.listen();
         } catch (IOException ex) {
             SwingUtilities.invokeLater(() -> view.showErrorMessageBox(ex.getMessage(), "连接失败"));
             return;

@@ -19,12 +19,15 @@ public class LoginViewController {
 
     private String roomID;
 
-    public LoginViewController(LoginWindow loginWindow, SocketMessageReceiver receiver) {
-        this.view = loginWindow;
+    public LoginViewController(LoginWindow view, SocketMessageReceiver receiver) {
+        this.view = view;
         this.receiver = receiver;
 
-        loginWindow.getCreateRoomButton().addActionListener(this::handleCreateRoomButtonClick);
-        loginWindow.getJoinRoomButton().addActionListener(this::handleJoinRoomButtonClick);
+        view.getIPAddressTextField().setText(receiver.getIPAddress());
+        view.getPortTextField().setText(Integer.toString(receiver.getPort()));
+
+        view.getCreateRoomButton().addActionListener(this::handleCreateRoomButtonClick);
+        view.getJoinRoomButton().addActionListener(this::handleJoinRoomButtonClick);
 
         receiver.setListener(new MessageListener() {
             @Override

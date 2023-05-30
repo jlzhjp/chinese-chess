@@ -13,10 +13,22 @@ public class SocketReceiver implements AutoCloseable {
 
     private final Socket socket;
     private final PrintWriter writer;
+    private final int port;
+    private final String ipAddress;
 
     public SocketReceiver(String ip, int port) throws IOException {
+        this.ipAddress = ip;
+        this.port = port;
         this.socket = new Socket(ip, port);
         this.writer = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8)));
+    }
+
+    public int getPort() {
+        return port;
+    }
+
+    public String getIPAddress() {
+        return ipAddress;
     }
 
     /**

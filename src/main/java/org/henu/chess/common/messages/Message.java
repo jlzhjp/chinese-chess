@@ -20,72 +20,44 @@ public class Message {
         JsonObject jsonObject = JsonParser.parseString(json).getAsJsonObject();
 
         String className = jsonObject.get("$className").getAsString();
+        jsonObject.remove("$className");
 
         if (className.equals(CreateRoomRequest.class.getName())) {
-            return new CreateRoomRequest();
-
-        } else if (className.equals(CreateRoomResponse.class.getName())) {
-            CreateRoomResponse createRoomResponse = new CreateRoomResponse();
-            parsePartialResponse(jsonObject, createRoomResponse);
-            createRoomResponse.setRoomID(jsonObject.get("roomID").getAsString());
-            return createRoomResponse;
-
-        } else if (className.equals(JoinRoomRequest.class.getName())) {
-            JoinRoomRequest joinRoomRequest = new JoinRoomRequest();
-            parsePartialRequest(jsonObject, joinRoomRequest);
-            return joinRoomRequest;
-
-        } else if (className.equals(JoinRoomResponse.class.getName())) {
-            JoinRoomResponse joinRoomResponse = new JoinRoomResponse();
-            parsePartialResponse(jsonObject, joinRoomResponse);
-            return joinRoomResponse;
-
-        } else if (className.equals(StartGameResponse.class.getName())) {
-            StartGameResponse startGameResponse = new StartGameResponse();
-            parsePartialResponse(jsonObject, startGameResponse);
-            startGameResponse.setRedPlayerName(jsonObject.get("redPlayerName").getAsString());
-            startGameResponse.setBlackPlayerName(jsonObject.get("blackPlayerName").getAsString());
-            return startGameResponse;
-
-        } else if (className.equals(MovePieceRequest.class.getName())) {
-            MovePieceRequest movePieceRequest = new MovePieceRequest();
-            parsePartialRequest(jsonObject, movePieceRequest);
-            movePieceRequest.setFrom(parsePoint(jsonObject.get("from").getAsJsonObject()));
-            movePieceRequest.setTo(parsePoint(jsonObject.get("to").getAsJsonObject()));
-            return movePieceRequest;
-
-        } else if (className.equals(MovePieceResponse.class.getName())) {
-            MovePieceResponse movePieceResponse = new MovePieceResponse();
-            parsePartialResponse(jsonObject, movePieceResponse);
-            return movePieceResponse;
-
-        } else if (className.equals(GameOverResponse.class.getName())) {
-            GameOverResponse gameOverResponse = new GameOverResponse();
-            parsePartialRequest(jsonObject, gameOverResponse);
-            gameOverResponse.setWinner(jsonObject.get("winner").getAsString());
-            return gameOverResponse;
-
-        } else if (className.equals(CheckMateResponse.class.getName())) {
-            CheckMateResponse checkMateResponse = new CheckMateResponse();
-            parsePartialResponse(jsonObject, checkMateResponse);
-            return checkMateResponse;
+            return gson.fromJson(jsonObject, CreateRoomRequest.class);
         }
 
-        else {
-            throw new RuntimeException("Unknown message type: " + className);
+        if (className.equals(JoinRoomRequest.class.getName())) {
+            return gson.fromJson(jsonObject, JoinRoomRequest.class);
         }
-    }
 
-    private static void parsePartialResponse(JsonObject jsonObject, Response response) {
-        response.setMessage(jsonObject.get("message").getAsString());
-        response.setResult(Result.valueOf(jsonObject.get("result").getAsString()));
-    }
+        if (className.equals(MovePieceRequest.class.getName())) {
+            return gson.fromJson(jsonObject, MovePieceRequest.class);
+        }
 
-    private static void parsePartialRequest(JsonObject jsonObject, Request request) {
-        request.setRoomID(jsonObject.get("roomID").getAsString());
-    }
+        if (className.equals(CheckMateResponse.class.getName())) {
+            return gson.fromJson(jsonObject, CheckMateResponse.class);
+        }
 
-    private static ChessBoardPoint parsePoint(JsonObject jsonObject) {
-        return new ChessBoardPoint(jsonObject.get("x").getAsInt(), jsonObject.get("y").getAsInt());
+        if (className.equals(CreateRoomResponse.class.getName())) {
+            return gson.fromJson(jsonObject, CreateRoomResponse.class);
+        }
+
+        if (className.equals(GameOverResponse.class.getName())) {
+            return gson.fromJson(jsonObject, GameOverResponse.class);
+        }
+
+        if (className.equals(JoinRoomResponse.class.getName())) {
+            return gson.fromJson(jsonObject, JoinRoomResponse.class);
+        }
+
+        if (className.equals(MovePieceResponse.class.getName())) {
+            return gson.fromJson(jsonObject, MovePieceResponse.class);
+        }
+
+        if (className.equals(StartGameResponse.class.getName())) {
+            return gson.fromJson(jsonObject, StartGameResponse.class);
+        }
+
+        throw new IllegalArgumentException("Unknown message type: " + className);
     }
 }
