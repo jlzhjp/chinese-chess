@@ -27,14 +27,7 @@ public class WaitingViewController {
             view.show();
         });
 
-        receiver.setListener(new MessageListener() {
-            @Override
-            public void onResponse(Response response) {
-                if (response instanceof StartGameResponse startGameResponse) {
-                    handleStartGameResponse(startGameResponse);
-                }
-            }
-        });
+        receiver.setListener(new MessageListener().on(StartGameResponse.class, this::handleStartGameResponse));
     }
 
     private void handleStartGameResponse(StartGameResponse response) {

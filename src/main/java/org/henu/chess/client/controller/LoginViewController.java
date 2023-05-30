@@ -8,7 +8,6 @@ import org.henu.chess.common.messages.request.CreateRoomRequest;
 import org.henu.chess.common.messages.request.JoinRoomRequest;
 import org.henu.chess.common.messages.response.CreateRoomResponse;
 import org.henu.chess.common.messages.response.JoinRoomResponse;
-import org.henu.chess.common.messages.response.Response;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -29,16 +28,9 @@ public class LoginViewController {
         view.getCreateRoomButton().addActionListener(this::handleCreateRoomButtonClick);
         view.getJoinRoomButton().addActionListener(this::handleJoinRoomButtonClick);
 
-        receiver.setListener(new MessageListener() {
-            @Override
-            public void onResponse(Response response) {
-                if (response instanceof CreateRoomResponse createRoomResponse) {
-                    handleCreateRoomResponse(createRoomResponse);
-                } else if (response instanceof JoinRoomResponse joinRoomResponse) {
-                    handleJoinRoomResponse(joinRoomResponse);
-                }
-            }
-        });
+        receiver.setListener(new MessageListener().
+                on(CreateRoomResponse.class, this::handleCreateRoomResponse).
+                on(JoinRoomResponse.class, this::handleJoinRoomResponse));
     }
 
     private void handleJoinRoomButtonClick(ActionEvent e) {
