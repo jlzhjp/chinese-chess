@@ -7,6 +7,7 @@ import org.henu.chess.common.SocketMessageReceiver;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
+import java.net.Socket;
 
 public class ServerInfoWindowController {
     ServerInfoWindow view;
@@ -32,7 +33,8 @@ public class ServerInfoWindowController {
         }
 
         try {
-             receiver = new SocketMessageReceiver(serverIPAddress, port);
+             Socket socket = new Socket(serverIPAddress, port);
+             receiver = new SocketMessageReceiver(socket);
              receiver.listen();
         } catch (IOException ex) {
             SwingUtilities.invokeLater(() -> view.showErrorMessageBox(ex.getMessage(), "连接失败"));

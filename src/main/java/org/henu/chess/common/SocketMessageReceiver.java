@@ -3,14 +3,15 @@ package org.henu.chess.common;
 import org.henu.chess.common.messages.Message;
 
 import java.io.IOException;
+import java.net.Socket;
 import java.util.Objects;
 
 public class SocketMessageReceiver implements AutoCloseable {
     private final SocketReceiver socketReceiver;
     private MessageListener listener;
 
-    public SocketMessageReceiver(String ip, int port) throws IOException {
-        socketReceiver = new SocketReceiver(ip, port);
+    public SocketMessageReceiver(Socket socket) throws IOException {
+        socketReceiver = new SocketReceiver(socket);
     }
 
     public void setListener(MessageListener listener) {

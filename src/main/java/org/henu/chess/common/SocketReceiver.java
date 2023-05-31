@@ -16,10 +16,10 @@ public class SocketReceiver implements AutoCloseable {
     private final int port;
     private final String ipAddress;
 
-    public SocketReceiver(String ip, int port) throws IOException {
-        this.ipAddress = ip;
-        this.port = port;
-        this.socket = new Socket(ip, port);
+    public SocketReceiver(Socket socket) throws IOException{
+        this.socket = socket;
+        this.port = socket.getPort();
+        this.ipAddress = socket.getInetAddress().getHostAddress();
         this.writer = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8)));
     }
 
