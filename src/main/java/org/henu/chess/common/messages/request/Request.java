@@ -12,7 +12,7 @@ public class Request extends Message {
         this.roomID = roomID;
     }
 
-    public String getRoomID(String roomID) {
+    public String getRoomID() {
         return roomID;
     }
 
@@ -20,7 +20,7 @@ public class Request extends Message {
         this.userName = userName;
     }
 
-    public String getUserName(String userName) {
+    public String getUserName() {
         return userName;
     }
 
