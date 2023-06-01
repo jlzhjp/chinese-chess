@@ -2,7 +2,6 @@ package org.henu.chess.common.view;
 
 import org.henu.chess.common.ImageLoader;
 import org.henu.chess.common.model.ChessBoardPoint;
-import org.henu.chess.common.model.ChessLogicImpl;
 import org.henu.chess.common.model.ChessPanelModel;
 import org.henu.chess.common.model.Piece;
 
@@ -33,8 +32,10 @@ public class ChessPanel extends JPanel implements PropertyChangeListener {
             public void mousePressed(MouseEvent e) {
                 int x = e.getX();
                 int y = e.getY();
-
                 ChessBoardPoint point = getChessBoardPoint(x, y);
+                if (!model.isRed()) {
+                    point = new ChessBoardPoint(point.getX(), model.getLogic().getBoardHeight() - point.getY() - 1);
+                }
                 if (Objects.nonNull(listener)) {
                     listener.onChessBoardClicked(point);
                 }
@@ -80,6 +81,9 @@ public class ChessPanel extends JPanel implements PropertyChangeListener {
     }
 
     private void paintPiece(Graphics g, ChessBoardPoint point, Piece piece) {
+        if (!model.isRed()) {
+            point = new ChessBoardPoint(point.getX(), model.getLogic().getBoardHeight() - point.getY() - 1);
+        }
         Point2D screenPoint = getScreenPoint(point);
         int screenX = (int) screenPoint.getX() - PIECE_SIZE / 2;
         int screenY = (int) screenPoint.getY() - PIECE_SIZE / 2;

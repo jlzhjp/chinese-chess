@@ -1,14 +1,14 @@
 package org.henu.chess.client;
 
 import com.formdev.flatlaf.FlatLightLaf;
-import org.henu.chess.client.controller.ServerInfoWindowController;
+import org.henu.chess.client.controller.ServerInfoViewController;
 import org.henu.chess.client.view.ServerInfoWindow;
 
 public class ClientMain {
     public static void main(String[] args) {
         FlatLightLaf.setup();
         ServerInfoWindow serverInfoWindow = new ServerInfoWindow();
-        ServerInfoWindowController serverInfoWindowController = new ServerInfoWindowController(serverInfoWindow);
+        ServerInfoViewController serverInfoViewController = new ServerInfoViewController(serverInfoWindow);
         serverInfoWindow.show();
     }
 }

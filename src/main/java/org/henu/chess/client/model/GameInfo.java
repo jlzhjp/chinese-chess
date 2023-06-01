@@ -1,11 +1,26 @@
 package org.henu.chess.client.model;
 
 public class GameInfo {
-    String redPlayer;
+    private String roomID;
+    private String userName;
+    private String redPlayer;
+    private String blackPlayer;
 
-    String blackPlayer;
+    public String getRoomID() {
+        return roomID;
+    }
 
-    boolean isRed;
+    public void setRoomID(String roomID) {
+        this.roomID = roomID;
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
 
     public String getRedPlayer() {
         return redPlayer;
@@ -24,10 +39,6 @@ public class GameInfo {
     }
 
     public boolean isRed() {
-        return isRed;
-    }
-
-    public void setRed(boolean red) {
-        isRed = red;
+        return redPlayer.equals(userName);
     }
 }

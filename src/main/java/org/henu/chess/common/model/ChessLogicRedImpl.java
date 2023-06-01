@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public final class ChessLogicImpl implements ChessLogic {
+public class ChessLogicRedImpl implements ChessLogic {
     private final int BOARD_HEIGHT = 10;
     private final int BOARD_WIDTH = 9;
 

@@ -9,12 +9,12 @@ import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.net.Socket;
 
-public class ServerInfoWindowController {
+public class ServerInfoViewController {
     ServerInfoWindow view;
 
     SocketMessageReceiver receiver;
 
-    public ServerInfoWindowController(ServerInfoWindow view) {
+    public ServerInfoViewController(ServerInfoWindow view) {
         this.view = view;
         view.getConnectButton().addActionListener(this::handleConnectButtonClick);
     }

@@ -1,7 +1,7 @@
 package org.henu.chess.client.view;
 
 import com.formdev.flatlaf.FlatLightLaf;
-import org.henu.chess.common.model.ChessLogicImpl;
+import org.henu.chess.common.model.ChessLogicRedImpl;
 import org.henu.chess.common.model.ChessPanelModel;
 import org.henu.chess.common.view.ChessPanel;
 
@@ -54,7 +54,7 @@ public class ChessWindow {
 
         chessPanel = new ChessPanel();
         chessPanel.setBounds(10, 11, 600, 600);
-        chessPanel.setModel(new ChessPanelModel(new ChessLogicImpl()));
+        chessPanel.setModel(new ChessPanelModel(new ChessLogicRedImpl()));
         frame.getContentPane().add(chessPanel);
 
         logWrapper = new JPanel();
@@ -95,6 +95,18 @@ public class ChessWindow {
 
     public ChessPanel getChessPanel() {
         return chessPanel;
+    }
+
+    public void showInfoMessageBox(String content, String title) {
+        JOptionPane.showMessageDialog(frame, content, title, JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    public void showErrorMessageBox(String content, String title) {
+        JOptionPane.showMessageDialog(frame, content, title, JOptionPane.ERROR_MESSAGE);
+    }
+
+    public void appendToLog(String line) {
+        txtLog.append(line + "\n");
     }
 
     public void show() {

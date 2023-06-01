@@ -13,12 +13,13 @@ import javax.swing.*;
 public class WaitingViewController {
     private final WaitingWindow view;
     private final String selfUserName;
-
+    private final String roomID;
     private final SocketMessageReceiver receiver;
 
     public WaitingViewController(SocketMessageReceiver receiver, WaitingWindow view, String userName, String roomID) {
         this.view = view;
         this.selfUserName = userName;
+        this.roomID = roomID;
         this.receiver = receiver;
 
         SwingUtilities.invokeLater(() -> {
@@ -38,7 +39,8 @@ public class WaitingViewController {
 
             GameInfo info = new GameInfo();
 
-            info.setRed(response.getRedPlayerName().equals(selfUserName));
+            info.setRoomID(roomID);
+            info.setUserName(selfUserName);
             info.setBlackPlayer(response.getBlackPlayerName());
             info.setRedPlayer(response.getRedPlayerName());
 

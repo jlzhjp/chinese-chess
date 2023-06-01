@@ -2,17 +2,73 @@ package org.henu.chess.common.model;
 
 import org.henu.chess.common.Model;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ChessPanelModel extends Model {
     private final HashMap<ChessBoardPoint, Piece> pieces = new HashMap<>();
     private final ArrayList<ChessBoardPoint> availableMoves = new ArrayList<>();
+    private final ChessLogic logic;
+    private boolean isRed = true;
     private ChessBoardPoint selectedPoint;
 
-    private final ChessLogic logic;
-
     public ChessPanelModel(ChessLogic logic) {
-       this.logic = logic;
+        this.logic = logic;
+    }
+
+    public static ChessPanelModel initial(boolean isRed) {
+        var model = new ChessPanelModel(isRed ? new ChessLogicRedImpl() : new ChessLogicBlackImpl());
+
+        model.setIsRed(isRed);
+
+        model.put(new ChessBoardPoint(0, 9), Piece.RED_CHARIOT);
+        model.put(new ChessBoardPoint(1, 9), Piece.RED_HORSE);
+        model.put(new ChessBoardPoint(2, 9), Piece.RED_ELEPHANT);
+        model.put(new ChessBoardPoint(3, 9), Piece.RED_GUARD);
+        model.put(new ChessBoardPoint(4, 9), Piece.RED_GENERAL);
+        model.put(new ChessBoardPoint(5, 9), Piece.RED_GUARD);
+        model.put(new ChessBoardPoint(6, 9), Piece.RED_ELEPHANT);
+        model.put(new ChessBoardPoint(7, 9), Piece.RED_HORSE);
+        model.put(new ChessBoardPoint(8, 9), Piece.RED_CHARIOT);
+        model.put(new ChessBoardPoint(1, 7), Piece.RED_CANNON);
+        model.put(new ChessBoardPoint(7, 7), Piece.RED_CANNON);
+        model.put(new ChessBoardPoint(0, 6), Piece.RED_SOLDIER);
+        model.put(new ChessBoardPoint(2, 6), Piece.RED_SOLDIER);
+        model.put(new ChessBoardPoint(4, 6), Piece.RED_SOLDIER);
+        model.put(new ChessBoardPoint(6, 6), Piece.RED_SOLDIER);
+        model.put(new ChessBoardPoint(8, 6), Piece.RED_SOLDIER);
+
+        model.put(new ChessBoardPoint(0, 0), Piece.BLACK_CHARIOT);
+        model.put(new ChessBoardPoint(1, 0), Piece.BLACK_HORSE);
+        model.put(new ChessBoardPoint(2, 0), Piece.BLACK_ELEPHANT);
+        model.put(new ChessBoardPoint(3, 0), Piece.BLACK_GUARD);
+        model.put(new ChessBoardPoint(4, 0), Piece.BLACK_GENERAL);
+        model.put(new ChessBoardPoint(5, 0), Piece.BLACK_GUARD);
+        model.put(new ChessBoardPoint(6, 0), Piece.BLACK_ELEPHANT);
+        model.put(new ChessBoardPoint(7, 0), Piece.BLACK_HORSE);
+        model.put(new ChessBoardPoint(8, 0), Piece.BLACK_CHARIOT);
+        model.put(new ChessBoardPoint(1, 2), Piece.BLACK_CANNON);
+        model.put(new ChessBoardPoint(7, 2), Piece.BLACK_CANNON);
+        model.put(new ChessBoardPoint(0, 3), Piece.BLACK_SOLDIER);
+        model.put(new ChessBoardPoint(2, 3), Piece.BLACK_SOLDIER);
+        model.put(new ChessBoardPoint(4, 3), Piece.BLACK_SOLDIER);
+        model.put(new ChessBoardPoint(6, 3), Piece.BLACK_SOLDIER);
+        model.put(new ChessBoardPoint(8, 3), Piece.BLACK_SOLDIER);
+        return model;
+    }
+
+    public ChessLogic getLogic() {
+        return logic;
+    }
+
+    public boolean isRed() {
+        return isRed;
+    }
+
+    public void setIsRed(boolean isRed) {
+        this.isRed = isRed;
     }
 
     public Map<ChessBoardPoint, Piece> getPieces() {
@@ -35,7 +91,6 @@ public class ChessPanelModel extends Model {
             availableMoves.addAll(getAvailablePointForPieceAt(point));
             raisePropertyChange("availablePoints", null, availableMoves);
         }
-
     }
 
     public Piece pieceAt(ChessBoardPoint point) {
