@@ -61,22 +61,6 @@ public class MessageParsingTest {
     }
 
     @Test
-    public void testCheckMateResponseParsing() {
-        CheckMateResponse response = new CheckMateResponse();
-        response.setMessage("TestMessage");
-        response.setResult(Result.ERROR);
-
-        String json = Message.toJsonString(response);
-        System.out.println(json);
-
-        Message parsedResponse = Message.parse(json);
-        System.out.println(parsedResponse);
-
-        Assertions.assertTrue(parsedResponse instanceof CheckMateResponse);
-        Assertions.assertEquals(response, parsedResponse);
-    }
-
-    @Test
     public void testCreateRoomResponseParsing() {
         CreateRoomResponse response = new CreateRoomResponse();
         response.setMessage("TestMessage");

@@ -1,6 +1,7 @@
 # 中国象棋
 
 ### 创建房间
+
 ```
 Client -> CreateRoomRequest (null)
 Server -> CreateRoomResponse(result, message, roomID)
@@ -9,6 +10,7 @@ Server -> CreateRoomResponse(result, message, roomID)
 ```
 
 ### 加入房间
+
 ```
 Client -> JoinRoomRequest(userName, roomID)
 Server -> JoinRoomResponse(result, message, roomID)
@@ -17,6 +19,7 @@ Server -> JoinRoomResponse(result, message, roomID)
 ```
 
 ### 开始游戏
+
 ```
 Server -> StartGameResponse(redPlayerName, blackPlayerName)
     redPlayerName: 红方的玩家名
@@ -24,6 +27,7 @@ Server -> StartGameResponse(redPlayerName, blackPlayerName)
 ```
 
 ### 移动棋子
+
 ```
 Client -> MovePieceRequest(roomID, userName, from, to)
     roomID: 房间号
@@ -44,7 +48,8 @@ Server:
     若移动成功: result=SUCCESS, from=棋子的起始位置, to=棋子的目标位置
 ```
 
-## 游戏结束
+### 游戏结束
+
 ```
 Server:
 向所有玩家发送 GameOverResponse(winner), 断开 Socket 连接

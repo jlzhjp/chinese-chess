@@ -5,6 +5,7 @@ import org.henu.chess.client.view.ChessWindow;
 import org.henu.chess.common.MessageListener;
 import org.henu.chess.common.SocketMessageReceiver;
 import org.henu.chess.common.messages.Result;
+import org.henu.chess.common.messages.request.AdmitDefeatRequest;
 import org.henu.chess.common.messages.request.MovePieceRequest;
 import org.henu.chess.common.messages.response.GameOverResponse;
 import org.henu.chess.common.messages.response.MovePieceResponse;
@@ -14,6 +15,9 @@ import org.henu.chess.common.model.Piece;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 public class ChessViewController {
@@ -21,7 +25,22 @@ public class ChessViewController {
     ChessWindow view;
     GameInfo gameInfo;
     SocketMessageReceiver receiver;
+    Timer timer;
+    int remainingTime = 60;
+    private static final HashSet<Piece> possibleCheckMatePieces = new HashSet<>();
     boolean canMove;
+
+    static {
+        possibleCheckMatePieces.add(Piece.RED_CHARIOT);
+        possibleCheckMatePieces.add(Piece.RED_CANNON);
+        possibleCheckMatePieces.add(Piece.RED_HORSE);
+        possibleCheckMatePieces.add(Piece.RED_SOLDIER);
+
+        possibleCheckMatePieces.add(Piece.BLACK_CHARIOT);
+        possibleCheckMatePieces.add(Piece.BLACK_CANNON);
+        possibleCheckMatePieces.add(Piece.BLACK_HORSE);
+        possibleCheckMatePieces.add(Piece.BLACK_SOLDIER);
+    }
 
     public ChessViewController(ChessWindow view, GameInfo gameInfo, SocketMessageReceiver receiver) {
         this.view = view;
@@ -31,6 +50,25 @@ public class ChessViewController {
 
         // 红方先行
         this.canMove = gameInfo.isRed();
+
+        timer = new Timer(1000, e -> {
+            if (canMove) {
+                --remainingTime;
+                SwingUtilities.invokeLater(() -> view.getRemainingTimeLabel().setText(Integer.toString(remainingTime)));
+                if (remainingTime <= 0) {
+                    AdmitDefeatRequest request = new AdmitDefeatRequest();
+                    request.setRoomID(gameInfo.getRoomID());
+                    request.setUserName(gameInfo.getUserName());
+                    receiver.send(request);
+                    timer.stop();
+                }
+            } else {
+                remainingTime = 60;
+                SwingUtilities.invokeLater(() -> view.getRemainingTimeLabel().setText("--"));
+            }
+        });
+
+        timer.start();
 
         view.getRedPlayerLabel().setText("红方: " + gameInfo.getRedPlayer());
         view.getBlackPlayerLabel().setText("黑方: " + gameInfo.getBlackPlayer());
@@ -52,16 +90,51 @@ public class ChessViewController {
     }
 
     private void handleMovePieceResponse(MovePieceResponse response) {
-        if (response.getResult() == Result.SUCCESS) {
-            if (Objects.nonNull(response.getFrom()) && Objects.nonNull(response.getTo())) {
-                SwingUtilities.invokeLater(() -> {
-                    Piece piece = chessModel.pieceAt(response.getFrom());
-                    chessModel.move(response.getFrom(), response.getTo());
-                    appendLog(piece, response.getFrom(), response.getTo());
-                });
-                canMove = true;
+        if (response.getResult() != Result.SUCCESS) {
+            return;
+        }
+        if (Objects.isNull(response.getFrom()) || Objects.isNull(response.getTo())) {
+            return;
+        }
+
+        SwingUtilities.invokeLater(() -> {
+            Piece piece = chessModel.pieceAt(response.getFrom());
+            chessModel.move(response.getFrom(), response.getTo());
+
+            if (isCheckMate()) {
+                view.showInfoMessageBox("将军!", "警告");
+            }
+            appendLog(piece, response.getFrom(), response.getTo());
+        });
+        canMove = true;
+    }
+
+    private boolean isCheckMate() {
+        Piece general = gameInfo.isRed() ? Piece.RED_GENERAL : Piece.BLACK_GENERAL;
+        ChessBoardPoint generalPoint = chessModel.getPieces().entrySet().stream()
+                .filter(entry -> Objects.equals(entry.getValue(), general))
+                .map(Map.Entry::getKey)
+                .findFirst()
+                .orElse(null);
+
+        for (ChessBoardPoint point : chessModel.getPieces().keySet()) {
+            Piece piece = chessModel.pieceAt(point);
+
+            if (Objects.isNull(piece) || piece.isRed() == gameInfo.isRed()) {
+                continue;
+            }
+
+            if (!possibleCheckMatePieces.contains(piece)) {
+                continue;
+            }
+
+            List<ChessBoardPoint> availableMoves = chessModel.getLogic().getAvailablePointForPieceAt(chessModel.getPieces(), point);
+            if (availableMoves.contains(generalPoint)) {
+                return true;
             }
         }
+
+        return false;
     }
 
     private void handleGameOverResponse(GameOverResponse response) {

@@ -12,12 +12,14 @@ import java.awt.*;
 
 public class ChessWindow extends AppWindow {
     private ChessPanel chessPanel;
-    private JScrollPane scrollPane;
+    private JScrollPane logScrollWrapper;
     private JTextArea txtLog;
     private JPanel logWrapper;
     private JPanel userInfoWrapper;
     private JLabel lblRed;
     private JLabel lblBlack;
+    private JPanel remainingTimeWrapper;
+    private JLabel lblRemainingTime;
 
     /**
      * Create the application.
@@ -59,16 +61,16 @@ public class ChessWindow extends AppWindow {
 
         logWrapper = new JPanel();
         logWrapper.setBorder(new TitledBorder(null, "对局记录", TitledBorder.LEADING, TitledBorder.TOP, null, null));
-        logWrapper.setBounds(620, 113, 281, 492);
+        logWrapper.setBounds(620, 215, 281, 390);
         getFrame().getContentPane().add(logWrapper);
         logWrapper.setLayout(new BorderLayout(0, 0));
 
-        scrollPane = new JScrollPane();
-        logWrapper.add(scrollPane);
+        logScrollWrapper = new JScrollPane();
+        logWrapper.add(logScrollWrapper);
 
         txtLog = new JTextArea();
         txtLog.setEditable(false);
-        scrollPane.setViewportView(txtLog);
+        logScrollWrapper.setViewportView(txtLog);
 
         userInfoWrapper = new JPanel();
         userInfoWrapper.setBorder(new TitledBorder(null, "棋手信息", TitledBorder.LEADING, TitledBorder.TOP, null, null));
@@ -83,6 +85,17 @@ public class ChessWindow extends AppWindow {
         lblBlack = new JLabel("黑方：");
         lblBlack.setBounds(10, 56, 261, 14);
         userInfoWrapper.add(lblBlack);
+
+        remainingTimeWrapper = new JPanel();
+        remainingTimeWrapper.setBorder(new TitledBorder(null, "剩余时间", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+        remainingTimeWrapper.setBounds(620, 113, 281, 91);
+        getFrame().getContentPane().add(remainingTimeWrapper);
+        remainingTimeWrapper.setLayout(null);
+
+        lblRemainingTime = new JLabel("--");
+        lblRemainingTime.setBounds(126, 37, 58, 25);
+        lblRemainingTime.setFont(new Font("Tahoma", Font.BOLD, 32));
+        remainingTimeWrapper.add(lblRemainingTime);
     }
 
     public JLabel getRedPlayerLabel() {
@@ -101,4 +114,7 @@ public class ChessWindow extends AppWindow {
         txtLog.append(line + "\n");
     }
 
+    public JLabel getRemainingTimeLabel() {
+        return lblRemainingTime;
+    }
 }

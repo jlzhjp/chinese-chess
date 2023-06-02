@@ -7,7 +7,6 @@ import java.util.Objects;
 
 public class Response extends Message {
     private Result result;
-
     private String message;
 
     public Result getResult() {

@@ -3,13 +3,11 @@ package org.henu.chess.server.controller;
 import org.henu.chess.common.MessageListener;
 import org.henu.chess.common.SocketMessageReceiver;
 import org.henu.chess.common.messages.Result;
+import org.henu.chess.common.messages.request.AdmitDefeatRequest;
 import org.henu.chess.common.messages.request.CreateRoomRequest;
 import org.henu.chess.common.messages.request.JoinRoomRequest;
 import org.henu.chess.common.messages.request.MovePieceRequest;
-import org.henu.chess.common.messages.response.CreateRoomResponse;
-import org.henu.chess.common.messages.response.JoinRoomResponse;
-import org.henu.chess.common.messages.response.MovePieceResponse;
-import org.henu.chess.common.messages.response.StartGameResponse;
+import org.henu.chess.common.messages.response.*;
 import org.henu.chess.server.model.GameTable;
 import org.henu.chess.server.view.ServerWindow;
 
@@ -18,6 +16,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Random;
 
@@ -26,6 +25,8 @@ public class ServerViewController {
     HashMap<String, GameTable> gameTables = new HashMap<>();
     ServerWindow view;
     ServerSocket serverSocket;
+    private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+    private final HashSet<String> usedRoomID = new HashSet<>();
 
     public ServerViewController(ServerWindow view) {
         this.view = view;
@@ -52,18 +53,20 @@ public class ServerViewController {
                     var listener = new MessageListener()
                             .on(CreateRoomRequest.class, (request) -> handleCreateRoomRequest(receiver, request))
                             .on(JoinRoomRequest.class, (request) -> handleJoinRoomRequest(receiver, request))
-                            .on(MovePieceRequest.class, this::handleMovePieceRequest);
+                            .on(MovePieceRequest.class, this::handleMovePieceRequest)
+                            .on(AdmitDefeatRequest.class, this::handleAdmitDefeatRequest);
                     receiver.setListener(listener);
                     receiver.listen();
                 } catch (IOException ex) {
                     view.showErrorMessageBox(ex.getMessage(), "错误");
+                    break;
                 }
             }
         }).start();
     }
 
     private void handleCreateRoomRequest(SocketMessageReceiver receiver, CreateRoomRequest request) {
-        String roomID = Integer.toString(random.nextInt());
+        String roomID = generateRandomRoomID();
         CreateRoomResponse response = new CreateRoomResponse();
         response.setRoomID(roomID);
         response.setResult(Result.SUCCESS);
@@ -112,6 +115,8 @@ public class ServerViewController {
             response.setBlackPlayerName(table.getBlackPlayer());
             response.setResult(Result.SUCCESS);
 
+            view.getTableModel().setValueAt("游戏中", table.getRow(), 3);
+
             table.getRedPlayerReceiver().send(response);
             table.getBlackPlayerReceiver().send(response);
         }
@@ -141,8 +146,55 @@ public class ServerViewController {
         }
     }
 
+    private void handleAdmitDefeatRequest(AdmitDefeatRequest request) {
+        GameTable table = gameTables.get(request.getRoomID());
+
+        if (Objects.isNull(table)) {
+            return;
+        }
+
+        if (Objects.isNull(table.getRedPlayer()) || Objects.isNull(table.getBlackPlayer())) {
+            return;
+        }
+
+        GameOverResponse response = new GameOverResponse();
+
+        if (Objects.equals(request.getUserName(), table.getRedPlayer())) {
+            response.setWinner(table.getBlackPlayer());
+        } else {
+            response.setWinner(table.getRedPlayer());
+        }
+
+        table.getBlackPlayerReceiver().send(response);
+        table.getRedPlayerReceiver().send(response);
+    }
+
     private void handleStopButtonClicked(ActionEvent e) {
         view.getStartButton().setEnabled(true);
         view.getStopButton().setEnabled(false);
+        try {
+            serverSocket.close();
+        } catch (IOException ignored) {
+        }
+    }
+
+    private String generateRandomRoomID() {
+        StringBuilder sb = new StringBuilder();
+
+        while (sb.length() < 5) {
+            int index = random.nextInt(CHARACTERS.length());
+            char c = CHARACTERS.charAt(index);
+            if (sb.indexOf(String.valueOf(c)) == -1) {
+                sb.append(c);
+            }
+        }
+
+        String result = sb.toString();
+        if (usedRoomID.contains(result)) {
+            return generateRandomRoomID();
+        } else {
+            usedRoomID.add(result);
+            return result;
+        }
     }
 }
