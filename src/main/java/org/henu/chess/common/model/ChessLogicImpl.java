@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class ChessLogicRedImpl implements ChessLogic {
+public class ChessLogicImpl implements ChessLogic {
     private final int BOARD_HEIGHT = 10;
     private final int BOARD_WIDTH = 9;
 
@@ -35,10 +35,20 @@ public class ChessLogicRedImpl implements ChessLogic {
 
     private List<ChessBoardPoint> getAvailablePointForGeneral(Map<ChessBoardPoint, Piece> pieces, ChessBoardPoint point) {
         ArrayList<ChessBoardPoint> moves = new ArrayList<>();
-        Piece piece =pieces.get(point);
+        Piece piece = pieces.get(point);
 
         int x = point.getX();
         int y = point.getY();
+
+        int upper_limit, lower_limit;
+
+        if (piece.isRed()) {
+            upper_limit = 9;
+            lower_limit = 7;
+        } else {
+            upper_limit = 2;
+            lower_limit = 0;
+        }
 
         if (x - 1 >= 3) {
             addPoint(moves, x - 1, y, pieces, piece.isRed());
@@ -47,10 +57,10 @@ public class ChessLogicRedImpl implements ChessLogic {
             addPoint(moves, x + 1, y, pieces, piece.isRed());
         }
 
-        if (y - 1 >= BOARD_HEIGHT - 3) {
+        if (y - 1 >= lower_limit) {
             addPoint(moves, x, y - 1, pieces, piece.isRed());
         }
-        if (y + 1 < BOARD_HEIGHT) {
+        if (y + 1 <= upper_limit) {
             addPoint(moves, x, y + 1, pieces, piece.isRed());
         }
 
@@ -59,18 +69,28 @@ public class ChessLogicRedImpl implements ChessLogic {
 
     private List<ChessBoardPoint> getAvailablePointForGuard(Map<ChessBoardPoint, Piece> pieces, ChessBoardPoint point) {
         ArrayList<ChessBoardPoint> moves = new ArrayList<>();
-        Piece piece =pieces.get(point);
+        Piece piece = pieces.get(point);
 
         int x = point.getX();
         int y = point.getY();
 
-            for (int i = x - 1; i <= x + 1; i += 2) {
-                for (int j = y - 1; j <= y + 1; j += 2) {
-                    if (i >= 3 && i <= 5 && j >= 7 && j <= 9) {
-                        addPoint(moves, i, j, pieces, piece.isRed());
-                    }
+        int upper_limit, lower_limit;
+
+        if (piece.isRed()) {
+            upper_limit = 9;
+            lower_limit = 7;
+        } else {
+            upper_limit = 2;
+            lower_limit = 0;
+        }
+
+        for (int i = x - 1; i <= x + 1; i += 2) {
+            for (int j = y - 1; j <= y + 1; j += 2) {
+                if (i >= 3 && i <= 5 && j >= lower_limit && j <= upper_limit) {
+                    addPoint(moves, i, j, pieces, piece.isRed());
                 }
             }
+        }
 
         return moves;
     }
@@ -81,15 +101,25 @@ public class ChessLogicRedImpl implements ChessLogic {
 
         Piece piece = pieces.get(point);
 
+        int upper_limit, lower_limit;
+
+        if (piece.isRed()) {
+            upper_limit = 9;
+            lower_limit = 5;
+        } else {
+            upper_limit = 4;
+            lower_limit = 0;
+        }
+
         ArrayList<ChessBoardPoint> moves = new ArrayList<>();
 
         int[][] checkPoints = {{-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
 
-        for (var checkPoint: checkPoints) {
+        for (var checkPoint : checkPoints) {
             if (noPiece(pieces, x + checkPoint[0], y + checkPoint[1])) {
                 int newX = point.getX() + checkPoint[0] * 2;
                 int newY = point.getY() + checkPoint[1] * 2;
-                if (newY >= 5) {
+                if (newY >= lower_limit && newY <= upper_limit) {
                     addPoint(moves, newX, newY, pieces, piece.isRed());
                 }
             }
@@ -179,13 +209,26 @@ public class ChessLogicRedImpl implements ChessLogic {
         Piece piece = pieces.get(point);
         boolean isRed = piece.isRed();
 
+        int upper_limit, lower_limit;
+        int dy;
+
         int x = point.getX();
         int y = point.getY();
 
-        if (y >= 5) {
-            addPoint(moves, x, y - 1, pieces, isRed);
+        if (isRed) {
+            upper_limit = 4;
+            lower_limit = 0;
+            dy = -1;
         } else {
-            addPoint(moves, x, y - 1, pieces, isRed);
+            upper_limit = 9;
+            lower_limit = 5;
+            dy = 1;
+        }
+
+        if (lower_limit <= y && y <= upper_limit) {
+            addPoint(moves, x, y + dy, pieces, isRed);
+        } else {
+            addPoint(moves, x, y + dy, pieces, isRed);
             addPoint(moves, x - 1, y, pieces, isRed);
             addPoint(moves, x + 1, y, pieces, isRed);
         }
@@ -242,7 +285,7 @@ public class ChessLogicRedImpl implements ChessLogic {
                 if (piece == null) {
                     moves.add(new ChessBoardPoint(x, y));
                 } else {
-                    addDirectionForCannon(moves, x + dx, y + dy, dx, dy, pieces, isRed, false);
+                    addDirectionForCannon(moves, x, y, dx, dy, pieces, isRed, false);
                     break;
                 }
             } else {

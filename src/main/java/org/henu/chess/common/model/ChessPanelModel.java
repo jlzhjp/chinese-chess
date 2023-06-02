@@ -19,7 +19,7 @@ public class ChessPanelModel extends Model {
     }
 
     public static ChessPanelModel initial(boolean isRed) {
-        var model = new ChessPanelModel(isRed ? new ChessLogicRedImpl() : new ChessLogicBlackImpl());
+        var model = new ChessPanelModel(new ChessLogicImpl());
 
         model.setIsRed(isRed);
 

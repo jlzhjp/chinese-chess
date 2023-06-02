@@ -13,6 +13,7 @@ import org.henu.chess.common.model.ChessPanelModel;
 import org.henu.chess.common.model.Piece;
 
 import javax.swing.*;
+import java.awt.*;
 import java.util.Objects;
 
 public class ChessViewController {
@@ -33,6 +34,12 @@ public class ChessViewController {
 
         view.getRedPlayerLabel().setText("红方: " + gameInfo.getRedPlayer());
         view.getBlackPlayerLabel().setText("黑方: " + gameInfo.getBlackPlayer());
+
+        if (Objects.equals(gameInfo.getUserName(), gameInfo.getRedPlayer())) {
+            view.getRedPlayerLabel().setForeground(Color.RED);
+        } else {
+            view.getBlackPlayerLabel().setForeground(Color.RED);
+        }
 
         view.getChessPanel().setListener(this::handleChessPanelClick);
         view.getChessPanel().setModel(chessModel);
@@ -122,10 +129,10 @@ public class ChessViewController {
             dy = -dy;
         }
 
-        String dyChinese = piece.isRed() ? convertToChinese(dy) : Integer.toString(dy);
+        String dyChinese = piece.isRed() ? convertToChinese(Math.abs(dy)) : Integer.toString(Math.abs(dy));
 
         switch (piece) {
-            case RED_SOLDIER, BLACK_SOLDIER, RED_HORSE, BLACK_HORSE, RED_ELEPHANT, BLACK_ELEPHANT -> {
+            case RED_GUARD, BLACK_GUARD, RED_HORSE, BLACK_HORSE, RED_ELEPHANT, BLACK_ELEPHANT -> {
                 assert dy != 0;
 
                 result.append(startXChinese);

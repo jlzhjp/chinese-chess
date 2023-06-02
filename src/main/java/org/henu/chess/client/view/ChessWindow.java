@@ -1,7 +1,7 @@
 package org.henu.chess.client.view;
 
 import com.formdev.flatlaf.FlatLightLaf;
-import org.henu.chess.common.model.ChessLogicRedImpl;
+import org.henu.chess.common.model.ChessLogicImpl;
 import org.henu.chess.common.model.ChessPanelModel;
 import org.henu.chess.common.view.AppWindow;
 import org.henu.chess.common.view.ChessPanel;
@@ -54,7 +54,7 @@ public class ChessWindow extends AppWindow {
 
         chessPanel = new ChessPanel();
         chessPanel.setBounds(10, 11, 600, 600);
-        chessPanel.setModel(new ChessPanelModel(new ChessLogicRedImpl()));
+        chessPanel.setModel(new ChessPanelModel(new ChessLogicImpl()));
         getFrame().getContentPane().add(chessPanel);
 
         logWrapper = new JPanel();

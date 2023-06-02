@@ -58,6 +58,7 @@ public class ServerWindow extends AppWindow {
         getFrame().setBounds(100, 100, 392, 450);
         getFrame().setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         getFrame().getContentPane().setLayout(null);
+        getFrame().setResizable(false);
 
         configWrapper = new JPanel();
         configWrapper.setBorder(new TitledBorder(null, "配置", TitledBorder.LEADING, TitledBorder.TOP, null, null));

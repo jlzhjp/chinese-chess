@@ -81,9 +81,6 @@ public class ChessPanel extends JPanel implements PropertyChangeListener {
     }
 
     private void paintPiece(Graphics g, ChessBoardPoint point, Piece piece) {
-        if (!model.isRed()) {
-            point = new ChessBoardPoint(point.getX(), model.getLogic().getBoardHeight() - point.getY() - 1);
-        }
         Point2D screenPoint = getScreenPoint(point);
         int screenX = (int) screenPoint.getX() - PIECE_SIZE / 2;
         int screenY = (int) screenPoint.getY() - PIECE_SIZE / 2;
@@ -95,6 +92,9 @@ public class ChessPanel extends JPanel implements PropertyChangeListener {
     }
 
     private Point2D getScreenPoint(ChessBoardPoint point) {
+        if (!model.isRed()) {
+            point = new ChessBoardPoint(point.getX(), model.getLogic().getBoardHeight() - point.getY() - 1);
+        }
         Point2D screenPoint = new Point2D.Double();
         screenPoint.setLocation(point.getX() * LATTICE_SIZE + MARGIN, point.getY() * LATTICE_SIZE + MARGIN);
         return screenPoint;

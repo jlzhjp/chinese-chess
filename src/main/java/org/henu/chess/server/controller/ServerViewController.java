@@ -8,6 +8,7 @@ import org.henu.chess.common.messages.request.JoinRoomRequest;
 import org.henu.chess.common.messages.request.MovePieceRequest;
 import org.henu.chess.common.messages.response.CreateRoomResponse;
 import org.henu.chess.common.messages.response.JoinRoomResponse;
+import org.henu.chess.common.messages.response.MovePieceResponse;
 import org.henu.chess.common.messages.response.StartGameResponse;
 import org.henu.chess.server.model.GameTable;
 import org.henu.chess.server.view.ServerWindow;
@@ -50,7 +51,8 @@ public class ServerViewController {
                     SocketMessageReceiver receiver = new SocketMessageReceiver(socket);
                     var listener = new MessageListener()
                             .on(CreateRoomRequest.class, (request) -> handleCreateRoomRequest(receiver, request))
-                            .on(JoinRoomRequest.class, (request) -> handleJoinRoomRequest(receiver, request));
+                            .on(JoinRoomRequest.class, (request) -> handleJoinRoomRequest(receiver, request))
+                            .on(MovePieceRequest.class, this::handleMovePieceRequest);
                     receiver.setListener(listener);
                     receiver.listen();
                 } catch (IOException ex) {
@@ -61,15 +63,15 @@ public class ServerViewController {
     }
 
     private void handleCreateRoomRequest(SocketMessageReceiver receiver, CreateRoomRequest request) {
-        String roomNumber = Integer.toString(random.nextInt());
+        String roomID = Integer.toString(random.nextInt());
         CreateRoomResponse response = new CreateRoomResponse();
-        response.setRoomID(roomNumber);
+        response.setRoomID(roomID);
         response.setResult(Result.SUCCESS);
         response.setMessage("");
         GameTable table = new GameTable();
         table.setRow(view.getTableModel().getRowCount());
-        gameTables.put(roomNumber, table);
-        view.getTableModel().addRow(new Object[]{roomNumber, "", "", "等待中"});
+        gameTables.put(roomID, table);
+        view.getTableModel().addRow(new Object[]{roomID, "", "", "等待中"});
         receiver.send(response);
     }
 
@@ -116,6 +118,27 @@ public class ServerViewController {
     }
 
     private void handleMovePieceRequest(MovePieceRequest request) {
+        GameTable table = gameTables.get(request.getRoomID());
+
+        if (Objects.isNull(table)) {
+            return;
+        }
+
+        if (Objects.isNull(table.getRedPlayer()) || Objects.isNull(table.getBlackPlayer())) {
+            return;
+        }
+
+        MovePieceResponse response = new MovePieceResponse();
+
+        response.setResult(Result.SUCCESS);
+        response.setFrom(request.getFrom());
+        response.setTo(request.getTo());
+
+        if (Objects.equals(request.getUserName(), table.getRedPlayer())) {
+            table.getBlackPlayerReceiver().send(response);
+        } else {
+            table.getRedPlayerReceiver().send(response);
+        }
     }
 
     private void handleStopButtonClicked(ActionEvent e) {
