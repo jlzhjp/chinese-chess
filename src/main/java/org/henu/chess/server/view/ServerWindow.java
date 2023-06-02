@@ -3,18 +3,10 @@ package org.henu.chess.server.view;
 import com.formdev.flatlaf.FlatLightLaf;
 import org.henu.chess.common.view.AppWindow;
 
-import java.awt.EventQueue;
-
-import javax.swing.JFrame;
-import javax.swing.JPanel;
+import javax.swing.*;
 import javax.swing.border.TitledBorder;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.JLabel;
-import javax.swing.JTextField;
-import javax.swing.JButton;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableModel;
+import java.awt.*;
 
 public class ServerWindow extends AppWindow {
     private JPanel configWrapper;

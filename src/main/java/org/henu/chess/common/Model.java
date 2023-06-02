@@ -15,6 +15,7 @@ public abstract class Model {
 
     /**
      * 添加 Model 属性修改的监听器
+     *
      * @param listener 要添加的监听器
      */
     public void addPropertyChangeListener(PropertyChangeListener listener) {

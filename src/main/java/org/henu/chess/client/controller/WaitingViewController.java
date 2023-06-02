@@ -5,7 +5,6 @@ import org.henu.chess.client.view.ChessWindow;
 import org.henu.chess.client.view.WaitingWindow;
 import org.henu.chess.common.MessageListener;
 import org.henu.chess.common.SocketMessageReceiver;
-import org.henu.chess.common.messages.response.Response;
 import org.henu.chess.common.messages.response.StartGameResponse;
 
 import javax.swing.*;

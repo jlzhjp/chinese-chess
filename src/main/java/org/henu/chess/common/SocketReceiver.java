@@ -16,7 +16,7 @@ public class SocketReceiver implements AutoCloseable {
     private final int port;
     private final String ipAddress;
 
-    public SocketReceiver(Socket socket) throws IOException{
+    public SocketReceiver(Socket socket) throws IOException {
         this.socket = socket;
         this.port = socket.getPort();
         this.ipAddress = socket.getInetAddress().getHostAddress();

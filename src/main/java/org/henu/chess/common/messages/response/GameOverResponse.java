@@ -1,7 +1,5 @@
 package org.henu.chess.common.messages.response;
 
-import org.henu.chess.common.messages.request.Request;
-
 import java.util.Objects;
 
 public class GameOverResponse extends Response {

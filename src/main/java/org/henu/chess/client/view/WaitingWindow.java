@@ -2,9 +2,8 @@ package org.henu.chess.client.view;
 
 import com.formdev.flatlaf.FlatLightLaf;
 
-import java.awt.*;
-
 import javax.swing.*;
+import java.awt.*;
 
 public class WaitingWindow {
 
@@ -14,6 +13,7 @@ public class WaitingWindow {
     private JLabel lblUserNameValue;
 
     private JTextField txtRoomID;
+
     /**
      * Launch the application.
      */

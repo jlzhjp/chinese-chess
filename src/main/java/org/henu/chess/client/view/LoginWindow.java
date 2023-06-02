@@ -2,10 +2,9 @@ package org.henu.chess.client.view;
 
 import com.formdev.flatlaf.FlatLightLaf;
 
-import java.awt.EventQueue;
-
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
+import java.awt.*;
 
 public class LoginWindow {
 
@@ -132,7 +131,7 @@ public class LoginWindow {
     }
 
     public JTextField getRoomIDTextField() {
-       return txtRoomID;
+        return txtRoomID;
     }
 
     public JTextField getUserNameTextField() {

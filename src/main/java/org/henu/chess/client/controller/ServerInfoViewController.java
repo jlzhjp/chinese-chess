@@ -21,7 +21,7 @@ public class ServerInfoViewController {
 
     public void handleConnectButtonClick(ActionEvent e) {
         String serverIPAddress = view.getServerIPAddressTextField().getText();
-        String portString  = view.getPortTextField().getText();
+        String portString = view.getPortTextField().getText();
 
         int port;
 
@@ -33,9 +33,9 @@ public class ServerInfoViewController {
         }
 
         try {
-             Socket socket = new Socket(serverIPAddress, port);
-             receiver = new SocketMessageReceiver(socket);
-             receiver.listen();
+            Socket socket = new Socket(serverIPAddress, port);
+            receiver = new SocketMessageReceiver(socket);
+            receiver.listen();
         } catch (IOException ex) {
             SwingUtilities.invokeLater(() -> view.showErrorMessageBox(ex.getMessage(), "连接失败"));
             return;
@@ -46,7 +46,7 @@ public class ServerInfoViewController {
             view.dispose();
 
             LoginWindow loginWindow = new LoginWindow();
-            LoginViewController loginViewController =  new LoginViewController(loginWindow, receiver);
+            LoginViewController loginViewController = new LoginViewController(loginWindow, receiver);
 
             loginWindow.show();
         });

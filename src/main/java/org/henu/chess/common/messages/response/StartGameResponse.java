@@ -10,6 +10,7 @@ public class StartGameResponse extends Response {
     public String getRedPlayerName() {
         return redPlayerName;
     }
+
     public void setRedPlayerName(String redPlayerName) {
         this.redPlayerName = redPlayerName;
     }

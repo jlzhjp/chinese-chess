@@ -11,6 +11,7 @@ public class MovePieceResponse extends Response {
     public void setFrom(ChessBoardPoint from) {
         this.from = from;
     }
+
     public ChessBoardPoint getFrom() {
         return from;
     }

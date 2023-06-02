@@ -3,9 +3,10 @@ package org.henu.chess.common.messages;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import org.henu.chess.common.messages.request.*;
+import org.henu.chess.common.messages.request.CreateRoomRequest;
+import org.henu.chess.common.messages.request.JoinRoomRequest;
+import org.henu.chess.common.messages.request.MovePieceRequest;
 import org.henu.chess.common.messages.response.*;
-import org.henu.chess.common.model.ChessBoardPoint;
 
 public class Message {
     private static final Gson gson = new Gson();

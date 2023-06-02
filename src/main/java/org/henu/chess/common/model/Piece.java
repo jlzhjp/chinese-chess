@@ -23,7 +23,7 @@ public enum Piece {
     Piece(String symbol, boolean isRed, String imageFileName) {
         this.symbol = symbol;
         this.isRed = isRed;
-        this.imageFileName= imageFileName;
+        this.imageFileName = imageFileName;
     }
 
     public String getSymbol() {

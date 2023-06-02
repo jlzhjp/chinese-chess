@@ -7,7 +7,7 @@ public class ChessBoardPoint {
 
     private final int y;
 
-    public ChessBoardPoint(int x, int y){
+    public ChessBoardPoint(int x, int y) {
         this.x = x;
         this.y = y;
     }
