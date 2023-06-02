@@ -62,6 +62,7 @@ public class ServerInfoWindow {
         frame.getContentPane().add(lblPort);
 
         txtPort = new JTextField();
+        txtPort.setText("8888");
         txtPort.setBounds(95, 72, 96, 20);
         frame.getContentPane().add(txtPort);
         txtPort.setColumns(10);

@@ -3,14 +3,14 @@ package org.henu.chess.client.view;
 import com.formdev.flatlaf.FlatLightLaf;
 import org.henu.chess.common.model.ChessLogicRedImpl;
 import org.henu.chess.common.model.ChessPanelModel;
+import org.henu.chess.common.view.AppWindow;
 import org.henu.chess.common.view.ChessPanel;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
 
-public class ChessWindow {
-    private JFrame frame;
+public class ChessWindow extends AppWindow {
     private ChessPanel chessPanel;
     private JScrollPane scrollPane;
     private JTextArea txtLog;
@@ -23,6 +23,7 @@ public class ChessWindow {
      * Create the application.
      */
     public ChessWindow() {
+        super();
         initialize();
     }
 
@@ -34,7 +35,7 @@ public class ChessWindow {
             try {
                 FlatLightLaf.setup();
                 ChessWindow window = new ChessWindow();
-                window.frame.setVisible(true);
+                window.show();
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -45,22 +46,21 @@ public class ChessWindow {
      * Initialize the contents of the frame.
      */
     private void initialize() {
-        frame = new JFrame();
-        frame.setTitle("中国象棋");
-        frame.setResizable(false);
-        frame.setBounds(100, 100, 923, 651);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.getContentPane().setLayout(null);
+        getFrame().setTitle("中国象棋");
+        getFrame().setResizable(false);
+        getFrame().setBounds(100, 100, 923, 651);
+        getFrame().setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        getFrame().getContentPane().setLayout(null);
 
         chessPanel = new ChessPanel();
         chessPanel.setBounds(10, 11, 600, 600);
         chessPanel.setModel(new ChessPanelModel(new ChessLogicRedImpl()));
-        frame.getContentPane().add(chessPanel);
+        getFrame().getContentPane().add(chessPanel);
 
         logWrapper = new JPanel();
         logWrapper.setBorder(new TitledBorder(null, "对局记录", TitledBorder.LEADING, TitledBorder.TOP, null, null));
         logWrapper.setBounds(620, 113, 281, 492);
-        frame.getContentPane().add(logWrapper);
+        getFrame().getContentPane().add(logWrapper);
         logWrapper.setLayout(new BorderLayout(0, 0));
 
         scrollPane = new JScrollPane();
@@ -73,7 +73,7 @@ public class ChessWindow {
         userInfoWrapper = new JPanel();
         userInfoWrapper.setBorder(new TitledBorder(null, "棋手信息", TitledBorder.LEADING, TitledBorder.TOP, null, null));
         userInfoWrapper.setBounds(620, 11, 281, 91);
-        frame.getContentPane().add(userInfoWrapper);
+        getFrame().getContentPane().add(userInfoWrapper);
         userInfoWrapper.setLayout(null);
 
         lblRed = new JLabel("红方：");
@@ -97,27 +97,8 @@ public class ChessWindow {
         return chessPanel;
     }
 
-    public void showInfoMessageBox(String content, String title) {
-        JOptionPane.showMessageDialog(frame, content, title, JOptionPane.INFORMATION_MESSAGE);
-    }
-
-    public void showErrorMessageBox(String content, String title) {
-        JOptionPane.showMessageDialog(frame, content, title, JOptionPane.ERROR_MESSAGE);
-    }
-
     public void appendToLog(String line) {
         txtLog.append(line + "\n");
     }
 
-    public void show() {
-        frame.setVisible(true);
-    }
-
-    public void close() {
-        frame.setVisible(false);
-    }
-
-    public void dispose() {
-        frame.dispose();
-    }
 }

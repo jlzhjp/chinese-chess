@@ -4,8 +4,7 @@ import com.formdev.flatlaf.FlatLightLaf;
 
 import java.awt.*;
 
-import javax.swing.JFrame;
-import javax.swing.JLabel;
+import javax.swing.*;
 
 public class WaitingWindow {
 
@@ -13,8 +12,8 @@ public class WaitingWindow {
     private JLabel lblUserName;
     private JLabel lblRoomID;
     private JLabel lblUserNameValue;
-    private JLabel lblRoomIDValue;
 
+    private JTextField txtRoomID;
     /**
      * Launch the application.
      */
@@ -62,18 +61,20 @@ public class WaitingWindow {
         lblUserNameValue.setBounds(157, 61, 271, 14);
         frame.getContentPane().add(lblUserNameValue);
 
-        lblRoomIDValue = new JLabel("");
-        lblRoomIDValue.setFont(new Font("SimSun", Font.PLAIN, 16));
-        lblRoomIDValue.setBounds(157, 89, 271, 14);
-        frame.getContentPane().add(lblRoomIDValue);
+
+        txtRoomID = new JTextField();
+        txtRoomID.setEditable(false);
+        txtRoomID.setBounds(141, 86, 287, 20);
+        txtRoomID.setColumns(10);
+        frame.getContentPane().add(txtRoomID);
     }
 
     public JLabel getUserNameValueLabel() {
         return lblUserNameValue;
     }
 
-    public JLabel getRoomIDValueLabel() {
-        return lblRoomIDValue;
+    public JTextField getRoomIDTextField() {
+        return txtRoomID;
     }
 
     public void show() {

@@ -42,6 +42,7 @@ public class ServerInfoViewController {
         }
 
         SwingUtilities.invokeLater(() -> {
+            view.close();
             view.dispose();
 
             LoginWindow loginWindow = new LoginWindow();

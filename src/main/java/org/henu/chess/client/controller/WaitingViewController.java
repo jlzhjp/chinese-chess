@@ -24,7 +24,7 @@ public class WaitingViewController {
 
         SwingUtilities.invokeLater(() -> {
             view.getUserNameValueLabel().setText(userName);
-            view.getRoomIDValueLabel().setText(roomID);
+            view.getRoomIDTextField().setText(roomID);
             view.show();
         });
 
@@ -33,6 +33,7 @@ public class WaitingViewController {
 
     private void handleStartGameResponse(StartGameResponse response) {
         SwingUtilities.invokeLater(() -> {
+            view.close();
             view.dispose();
 
             ChessWindow chessWindow = new ChessWindow();
