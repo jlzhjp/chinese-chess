@@ -15,20 +15,14 @@ import org.henu.chess.common.model.Piece;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 public class ChessViewController {
-    ChessPanelModel chessModel;
-    ChessWindow view;
-    GameInfo gameInfo;
-    SocketMessageReceiver receiver;
-    Timer timer;
-    int remainingTime = 60;
     private static final HashSet<Piece> possibleCheckMatePieces = new HashSet<>();
-    boolean canMove;
 
     static {
         possibleCheckMatePieces.add(Piece.RED_CHARIOT);
@@ -41,6 +35,14 @@ public class ChessViewController {
         possibleCheckMatePieces.add(Piece.BLACK_HORSE);
         possibleCheckMatePieces.add(Piece.BLACK_SOLDIER);
     }
+
+    ChessPanelModel chessModel;
+    ChessWindow view;
+    GameInfo gameInfo;
+    SocketMessageReceiver receiver;
+    Timer timer;
+    int remainingTime = 60;
+    boolean canMove;
 
     public ChessViewController(ChessWindow view, GameInfo gameInfo, SocketMessageReceiver receiver) {
         this.view = view;
@@ -56,10 +58,7 @@ public class ChessViewController {
                 --remainingTime;
                 SwingUtilities.invokeLater(() -> view.getRemainingTimeLabel().setText(Integer.toString(remainingTime)));
                 if (remainingTime <= 0) {
-                    AdmitDefeatRequest request = new AdmitDefeatRequest();
-                    request.setRoomID(gameInfo.getRoomID());
-                    request.setUserName(gameInfo.getUserName());
-                    receiver.send(request);
+                    sendAdmitDefeatRequest();
                     timer.stop();
                 }
             } else {
@@ -79,14 +78,30 @@ public class ChessViewController {
             view.getBlackPlayerLabel().setForeground(Color.RED);
         }
 
-        view.getChessPanel().setListener(this::handleChessPanelClick);
+        view.getChessPanel().setListener(this::handleChessPanelClicked);
         view.getChessPanel().setModel(chessModel);
+        view.getAdmitDefeatButton().addActionListener(this::handleAdmitDefeatButtonClicked);
 
         var listener = new MessageListener()
                 .on(MovePieceResponse.class, this::handleMovePieceResponse)
                 .on(GameOverResponse.class, this::handleGameOverResponse);
 
         receiver.setListener(listener);
+    }
+
+    public static String convertToChinese(int n) {
+        return switch (n) {
+            case 1 -> "一";
+            case 2 -> "二";
+            case 3 -> "三";
+            case 4 -> "四";
+            case 5 -> "五";
+            case 6 -> "六";
+            case 7 -> "七";
+            case 8 -> "八";
+            case 9 -> "九";
+            default -> "";
+        };
     }
 
     private void handleMovePieceResponse(MovePieceResponse response) {
@@ -145,7 +160,7 @@ public class ChessViewController {
         });
     }
 
-    private void handleChessPanelClick(ChessBoardPoint point) {
+    private void handleChessPanelClicked(ChessBoardPoint point) {
         if (!canMove) {
             return;
         }
@@ -165,6 +180,20 @@ public class ChessViewController {
         } else {
             chessModel.unselect();
         }
+    }
+
+    private void handleAdmitDefeatButtonClicked(ActionEvent e) {
+        int result = view.showConfirmDialog("确定认输吗?", "认输");
+        if (result == JOptionPane.YES_OPTION) {
+            sendAdmitDefeatRequest();
+        }
+    }
+
+    private void sendAdmitDefeatRequest() {
+        AdmitDefeatRequest request = new AdmitDefeatRequest();
+        request.setRoomID(gameInfo.getRoomID());
+        request.setUserName(gameInfo.getUserName());
+        receiver.send(request);
     }
 
     private void sendMoveRequest(Piece piece, ChessBoardPoint from, ChessBoardPoint to) {
@@ -229,22 +258,6 @@ public class ChessViewController {
         }
 
         view.appendToLog(result.toString());
-    }
-
-
-    public static String convertToChinese(int n) {
-        return switch (n) {
-            case 1 -> "一";
-            case 2 -> "二";
-            case 3 -> "三";
-            case 4 -> "四";
-            case 5 -> "五";
-            case 6 -> "六";
-            case 7 -> "七";
-            case 8 -> "八";
-            case 9 -> "九";
-            default -> "";
-        };
     }
 }
 

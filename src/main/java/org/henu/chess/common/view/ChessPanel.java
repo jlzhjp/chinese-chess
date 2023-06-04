@@ -15,17 +15,12 @@ import java.beans.PropertyChangeListener;
 import java.util.Objects;
 
 public class ChessPanel extends JPanel implements PropertyChangeListener {
-    public interface ChessPanelListener {
-        void onChessBoardClicked(ChessBoardPoint point);
-    }
-
     static final int LATTICE_SIZE = 57;
     static final int MARGIN = 32;
     static final int PIECE_SIZE = 57;
     private final Image boardImage = ImageLoader.load("/WOOD_BOARD.GIF");
     private ChessPanelListener listener;
     private ChessPanelModel model;
-
     public ChessPanel() {
         this.addMouseListener(new MouseAdapter() {
             @Override
@@ -116,5 +111,9 @@ public class ChessPanel extends JPanel implements PropertyChangeListener {
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
         repaint();
+    }
+
+    public interface ChessPanelListener {
+        void onChessBoardClicked(ChessBoardPoint point);
     }
 }

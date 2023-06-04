@@ -15,6 +15,13 @@ public class WaitingWindow {
     private JTextField txtRoomID;
 
     /**
+     * Create the application.
+     */
+    public WaitingWindow() {
+        initialize();
+    }
+
+    /**
      * Launch the application.
      */
     public static void main(String[] args) {
@@ -30,17 +37,11 @@ public class WaitingWindow {
     }
 
     /**
-     * Create the application.
-     */
-    public WaitingWindow() {
-        initialize();
-    }
-
-    /**
      * Initialize the contents of the frame.
      */
     private void initialize() {
         frame = new JFrame();
+        frame.setResizable(false);
         frame.setTitle("等待中...");
         frame.setBounds(100, 100, 450, 200);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

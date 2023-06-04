@@ -20,6 +20,9 @@ public class ChessWindow extends AppWindow {
     private JLabel lblBlack;
     private JPanel remainingTimeWrapper;
     private JLabel lblRemainingTime;
+    private JPanel operationWrapper;
+    private JButton btnRetract;
+    private JButton btnAdmitDefeat;
 
     /**
      * Create the application.
@@ -61,7 +64,7 @@ public class ChessWindow extends AppWindow {
 
         logWrapper = new JPanel();
         logWrapper.setBorder(new TitledBorder(null, "对局记录", TitledBorder.LEADING, TitledBorder.TOP, null, null));
-        logWrapper.setBounds(620, 215, 281, 390);
+        logWrapper.setBounds(620, 285, 281, 320);
         getFrame().getContentPane().add(logWrapper);
         logWrapper.setLayout(new BorderLayout(0, 0));
 
@@ -96,6 +99,20 @@ public class ChessWindow extends AppWindow {
         lblRemainingTime.setBounds(126, 37, 58, 25);
         lblRemainingTime.setFont(new Font("Tahoma", Font.BOLD, 32));
         remainingTimeWrapper.add(lblRemainingTime);
+
+        operationWrapper = new JPanel();
+        operationWrapper.setBorder(new TitledBorder(null, "操作", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+        operationWrapper.setBounds(620, 215, 281, 59);
+        getFrame().getContentPane().add(operationWrapper);
+        operationWrapper.setLayout(null);
+
+        btnRetract = new JButton("悔棋");
+        btnRetract.setBounds(42, 25, 89, 23);
+        operationWrapper.add(btnRetract);
+
+        btnAdmitDefeat = new JButton("认输");
+        btnAdmitDefeat.setBounds(153, 25, 89, 23);
+        operationWrapper.add(btnAdmitDefeat);
     }
 
     public JLabel getRedPlayerLabel() {
@@ -116,5 +133,13 @@ public class ChessWindow extends AppWindow {
 
     public JLabel getRemainingTimeLabel() {
         return lblRemainingTime;
+    }
+
+    public JButton getRetractButton() {
+        return btnRetract;
+    }
+
+    public JButton getAdmitDefeatButton() {
+        return btnAdmitDefeat;
     }
 }

@@ -24,6 +24,13 @@ public class LoginWindow {
     private JTextField txtUserName;
 
     /**
+     * Create the application.
+     */
+    public LoginWindow() {
+        initialize();
+    }
+
+    /**
      * Launch the application.
      */
     public static void main(String[] args) {
@@ -36,13 +43,6 @@ public class LoginWindow {
                 e.printStackTrace();
             }
         });
-    }
-
-    /**
-     * Create the application.
-     */
-    public LoginWindow() {
-        initialize();
     }
 
     /**

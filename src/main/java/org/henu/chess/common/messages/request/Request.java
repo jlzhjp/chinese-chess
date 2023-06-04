@@ -8,20 +8,20 @@ public class Request extends Message {
     private String roomID;
     private String userName;
 
-    public void setRoomID(String roomID) {
-        this.roomID = roomID;
-    }
-
     public String getRoomID() {
         return roomID;
     }
 
-    public void setUserName(String userName) {
-        this.userName = userName;
+    public void setRoomID(String roomID) {
+        this.roomID = roomID;
     }
 
     public String getUserName() {
         return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 
     @Override

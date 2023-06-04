@@ -21,12 +21,12 @@ import java.util.Objects;
 import java.util.Random;
 
 public class ServerViewController {
+    private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+    private final HashSet<String> usedRoomID = new HashSet<>();
     Random random = new Random();
     HashMap<String, GameTable> gameTables = new HashMap<>();
     ServerWindow view;
     ServerSocket serverSocket;
-    private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
-    private final HashSet<String> usedRoomID = new HashSet<>();
 
     public ServerViewController(ServerWindow view) {
         this.view = view;

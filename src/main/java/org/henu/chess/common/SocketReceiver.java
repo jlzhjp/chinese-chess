@@ -7,15 +7,10 @@ import java.nio.charset.StandardCharsets;
 
 
 public class SocketReceiver implements AutoCloseable {
-    public interface SocketMessageHandler {
-        void handle(String message);
-    }
-
     private final Socket socket;
     private final PrintWriter writer;
     private final int port;
     private final String ipAddress;
-
     public SocketReceiver(Socket socket) throws IOException {
         this.socket = socket;
         this.port = socket.getPort();
@@ -72,6 +67,10 @@ public class SocketReceiver implements AutoCloseable {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public interface SocketMessageHandler {
+        void handle(String message);
     }
 
 }

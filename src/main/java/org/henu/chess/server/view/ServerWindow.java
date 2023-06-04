@@ -9,6 +9,7 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 
 public class ServerWindow extends AppWindow {
+    private final DefaultTableModel tableModel = new DefaultTableModel();
     private JPanel configWrapper;
     private JScrollPane scrollPane;
     private JTable tblGameTables;
@@ -17,7 +18,13 @@ public class ServerWindow extends AppWindow {
     private JButton btnStart;
     private JButton btnStop;
 
-    private final DefaultTableModel tableModel = new DefaultTableModel();
+    /**
+     * Create the application.
+     */
+    public ServerWindow() {
+        super();
+        initialize();
+    }
 
     /**
      * Launch the application.
@@ -32,14 +39,6 @@ public class ServerWindow extends AppWindow {
                 e.printStackTrace();
             }
         });
-    }
-
-    /**
-     * Create the application.
-     */
-    public ServerWindow() {
-        super();
-        initialize();
     }
 
     /**

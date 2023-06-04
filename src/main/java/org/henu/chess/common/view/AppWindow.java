@@ -17,6 +17,10 @@ public class AppWindow {
         JOptionPane.showMessageDialog(frame, content, title, JOptionPane.ERROR_MESSAGE);
     }
 
+    public int showConfirmDialog(String content, String title) {
+        return JOptionPane.showConfirmDialog(frame, content, title, JOptionPane.YES_NO_OPTION);
+    }
+
     public void show() {
         frame.setVisible(true);
     }
