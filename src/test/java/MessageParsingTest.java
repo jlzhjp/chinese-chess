@@ -1,10 +1,10 @@
-import org.henu.chess.common.messages.Message;
-import org.henu.chess.common.messages.Result;
-import org.henu.chess.common.messages.request.CreateRoomRequest;
-import org.henu.chess.common.messages.request.JoinRoomRequest;
-import org.henu.chess.common.messages.request.MovePieceRequest;
-import org.henu.chess.common.messages.response.*;
-import org.henu.chess.common.model.ChessBoardPoint;
+import edu.henu.chinesechess.common.messages.Message;
+import edu.henu.chinesechess.common.messages.Result;
+import edu.henu.chinesechess.common.messages.request.CreateRoomRequest;
+import edu.henu.chinesechess.common.messages.request.JoinRoomRequest;
+import edu.henu.chinesechess.common.messages.request.MovePieceRequest;
+import edu.henu.chinesechess.common.messages.response.*;
+import edu.henu.chinesechess.common.model.ChessBoardPoint;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

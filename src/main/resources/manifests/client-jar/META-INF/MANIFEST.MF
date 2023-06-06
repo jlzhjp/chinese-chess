@@ -1,3 +1,3 @@
 Manifest-Version: 1.0
-Main-Class: org.henu.chess.client.ClientMain
+Main-Class: edu.henu.chinesechess.client.ClientMain
 
