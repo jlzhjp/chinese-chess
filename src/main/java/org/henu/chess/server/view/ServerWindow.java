@@ -52,26 +52,30 @@ public class ServerWindow extends AppWindow {
         getFrame().setResizable(false);
 
         configWrapper = new JPanel();
-        configWrapper.setBorder(new TitledBorder(null, "配置", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+        configWrapper.setBorder(new TitledBorder(null, "配置", TitledBorder.LEADING, TitledBorder.TOP, getDefaultFont(), null));
         configWrapper.setBounds(10, 11, 360, 57);
         getFrame().getContentPane().add(configWrapper);
         configWrapper.setLayout(null);
 
         lblPort = new JLabel("端口号");
+        makeDefaultFont(lblPort);
         lblPort.setBounds(9, 25, 48, 14);
         configWrapper.add(lblPort);
 
         txtPort = new JTextField();
+        makeDefaultFont(txtPort);
         txtPort.setText("8888");
         txtPort.setBounds(67, 22, 96, 20);
         configWrapper.add(txtPort);
         txtPort.setColumns(10);
 
         btnStart = new JButton("启动");
+        makeDefaultFont(btnStart);
         btnStart.setBounds(173, 21, 74, 23);
         configWrapper.add(btnStart);
 
         btnStop = new JButton("关闭");
+        makeDefaultFont(btnStop);
         btnStop.setBounds(261, 21, 74, 23);
         configWrapper.add(btnStop);
 
@@ -79,7 +83,13 @@ public class ServerWindow extends AppWindow {
         scrollPane.setBounds(10, 79, 360, 325);
         getFrame().getContentPane().add(scrollPane);
 
-        tblGameTables = new JTable();
+        tblGameTables = new JTable() {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+        makeDefaultFont(tblGameTables);
         tableModel.addColumn("房间号");
         tableModel.addColumn("红方");
         tableModel.addColumn("黑方");
@@ -102,5 +112,9 @@ public class ServerWindow extends AppWindow {
 
     public JTextField getPortTextField() {
         return txtPort;
+    }
+
+    public JTable getTable() {
+        return tblGameTables;
     }
 }

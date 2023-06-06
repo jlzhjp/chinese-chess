@@ -1,6 +1,8 @@
 package org.henu.chess.server.model;
 
+import org.henu.chess.common.GameStatus;
 import org.henu.chess.common.SocketMessageReceiver;
+import org.henu.chess.common.model.ChessPanelModel;
 
 public class GameTable {
     private int row;
@@ -11,6 +13,10 @@ public class GameTable {
     private SocketMessageReceiver redPlayerReceiver;
 
     private SocketMessageReceiver blackPlayerReceiver;
+
+    private GameStatus status;
+
+    private ChessPanelModel chessPanelModel;
 
     public String getRedPlayer() {
         return redPlayer;
@@ -50,5 +56,21 @@ public class GameTable {
 
     public void setRow(int row) {
         this.row = row;
+    }
+
+    public GameStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(GameStatus status) {
+        this.status = status;
+    }
+
+    public ChessPanelModel getChessPanelModel() {
+        return chessPanelModel;
+    }
+
+    public void setChessPanelModel(ChessPanelModel chessPanelModel) {
+        this.chessPanelModel = chessPanelModel;
     }
 }

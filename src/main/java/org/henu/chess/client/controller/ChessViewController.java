@@ -7,8 +7,11 @@ import org.henu.chess.common.SocketMessageReceiver;
 import org.henu.chess.common.messages.Result;
 import org.henu.chess.common.messages.request.AdmitDefeatRequest;
 import org.henu.chess.common.messages.request.MovePieceRequest;
+import org.henu.chess.common.messages.request.RetractReplyRequest;
+import org.henu.chess.common.messages.request.RetractRequest;
 import org.henu.chess.common.messages.response.GameOverResponse;
 import org.henu.chess.common.messages.response.MovePieceResponse;
+import org.henu.chess.common.messages.response.RetractResponse;
 import org.henu.chess.common.model.ChessBoardPoint;
 import org.henu.chess.common.model.ChessPanelModel;
 import org.henu.chess.common.model.Piece;
@@ -36,13 +39,17 @@ public class ChessViewController {
         possibleCheckMatePieces.add(Piece.BLACK_SOLDIER);
     }
 
-    ChessPanelModel chessModel;
-    ChessWindow view;
-    GameInfo gameInfo;
-    SocketMessageReceiver receiver;
-    Timer timer;
-    int remainingTime = 60;
-    boolean canMove;
+    private final ChessPanelModel chessModel;
+    private final ChessWindow view;
+    private final GameInfo gameInfo;
+    private final SocketMessageReceiver receiver;
+    private Timer timer;
+    private int remainingTime = 60;
+    private boolean canMove;
+
+    private ChessBoardPoint lastMoveFrom;
+    private ChessBoardPoint lastMoveTo;
+    private Piece pieceJustEaten;
 
     public ChessViewController(ChessWindow view, GameInfo gameInfo, SocketMessageReceiver receiver) {
         this.view = view;
@@ -50,24 +57,20 @@ public class ChessViewController {
         this.gameInfo = gameInfo;
         this.receiver = receiver;
 
-        // 红方先行
-        this.canMove = gameInfo.isRed();
-
         timer = new Timer(1000, e -> {
-            if (canMove) {
-                --remainingTime;
-                SwingUtilities.invokeLater(() -> view.getRemainingTimeLabel().setText(Integer.toString(remainingTime)));
-                if (remainingTime <= 0) {
-                    sendAdmitDefeatRequest();
-                    timer.stop();
-                }
-            } else {
-                remainingTime = 60;
-                SwingUtilities.invokeLater(() -> view.getRemainingTimeLabel().setText("--"));
+            SwingUtilities.invokeLater(() -> view.getRemainingTimeLabel().setText(Integer.toString(remainingTime)));
+            --remainingTime;
+            if (remainingTime < 0) {
+                sendAdmitDefeatRequest();
+                timer.stop();
             }
         });
 
-        timer.start();
+        // 红方先行
+        if (gameInfo.isRed()) {
+            enterMyTurn();
+        }
+
 
         view.getRedPlayerLabel().setText("红方: " + gameInfo.getRedPlayer());
         view.getBlackPlayerLabel().setText("黑方: " + gameInfo.getBlackPlayer());
@@ -78,30 +81,43 @@ public class ChessViewController {
             view.getBlackPlayerLabel().setForeground(Color.RED);
         }
 
-        view.getChessPanel().setListener(this::handleChessPanelClicked);
         view.getChessPanel().setModel(chessModel);
+        view.getChessPanel().setListener(this::handleChessPanelClicked);
         view.getAdmitDefeatButton().addActionListener(this::handleAdmitDefeatButtonClicked);
+        view.getRetractButton().addActionListener(this::handleRetractButtonClicked);
+        view.getRetractButton().setEnabled(false);
 
-        var listener = new MessageListener()
+        MessageListener listener = new MessageListener()
                 .on(MovePieceResponse.class, this::handleMovePieceResponse)
+                .on(RetractResponse.class, this::handleRetractResponse)
                 .on(GameOverResponse.class, this::handleGameOverResponse);
 
         receiver.setListener(listener);
     }
 
     public static String convertToChinese(int n) {
-        return switch (n) {
-            case 1 -> "一";
-            case 2 -> "二";
-            case 3 -> "三";
-            case 4 -> "四";
-            case 5 -> "五";
-            case 6 -> "六";
-            case 7 -> "七";
-            case 8 -> "八";
-            case 9 -> "九";
-            default -> "";
-        };
+        switch (n) {
+            case 1:
+                return "一";
+            case 2:
+                return "二";
+            case 3:
+                return "三";
+            case 4:
+                return "四";
+            case 5:
+                return "五";
+            case 6:
+                return "六";
+            case 7:
+                return "七";
+            case 8:
+                return "八";
+            case 9:
+                return "九";
+            default:
+                return "";
+        }
     }
 
     private void handleMovePieceResponse(MovePieceResponse response) {
@@ -121,7 +137,22 @@ public class ChessViewController {
             }
             appendLog(piece, response.getFrom(), response.getTo());
         });
+
+        enterMyTurn();
+    }
+
+    private void enterMyTurn() {
         canMove = true;
+        view.getRetractButton().setEnabled(false);
+        remainingTime = 60;
+        timer.start();
+    }
+
+    private void leaveMyTurn() {
+        canMove = false;
+        view.getRetractButton().setEnabled(true);
+        timer.stop();
+        SwingUtilities.invokeLater(() -> view.getRemainingTimeLabel().setText("--"));
     }
 
     private boolean isCheckMate() {
@@ -153,7 +184,7 @@ public class ChessViewController {
     }
 
     private void handleGameOverResponse(GameOverResponse response) {
-        canMove = false;
+        leaveMyTurn();
         receiver.close();
         SwingUtilities.invokeLater(() -> {
             view.showInfoMessageBox("胜利者: " + response.getWinner(), "游戏结束");
@@ -172,13 +203,66 @@ public class ChessViewController {
         } else if (Objects.nonNull(selectedPiece) && selectedPiece.isRed() == gameInfo.isRed()) {
             chessModel.select(point);
         } else if (Objects.nonNull(chessModel.getSelectedPoint()) && chessModel.getAvailableMoves().contains(point)) {
-            var from = chessModel.getSelectedPoint();
-            var piece = chessModel.pieceAt(from);
+            ChessBoardPoint from = chessModel.getSelectedPoint();
+            Piece piece = chessModel.pieceAt(from);
+
             chessModel.move(from, point);
             chessModel.unselect();
-            sendMoveRequest(piece, from, point);
+
+            lastMoveFrom = from;
+            lastMoveTo = point;
+            pieceJustEaten = selectedPiece;
+
+            sendMoveRequest(from, point);
+            appendLog(piece, from, point);
+            leaveMyTurn();
         } else {
             chessModel.unselect();
+        }
+    }
+
+    private void handleRetractButtonClicked(ActionEvent e) {
+        sendRetractRequest();
+        view.getRetractButton().setEnabled(false);
+    }
+
+    private void handleRetractResponse(RetractResponse response) {
+        if (canMove) {
+            // 在自己的回合收到悔棋的响应，对方发送的悔棋请求
+            RetractReplyRequest request = new RetractReplyRequest();
+            int which = view.showConfirmDialog("对方请求悔棋, 是否同意?", "悔棋");
+
+            request.setAgree(which == JOptionPane.YES_OPTION);
+            request.setRoomID(gameInfo.getRoomID());
+            request.setUserName(gameInfo.getUserName());
+            request.setFrom(response.getFrom());
+            request.setTo(response.getTo());
+            request.setPieceJustEaten(response.getPieceJustEaten());
+
+            if (request.isAgree()) {
+                leaveMyTurn();
+                chessModel.move(response.getFrom(), response.getTo());
+                if (Objects.nonNull(response.getPieceJustEaten())) {
+                    chessModel.put(response.getFrom(), response.getPieceJustEaten());
+                }
+            }
+            receiver.send(request);
+        } else {
+            // 自己发送的悔棋请求
+            if (response.getResult() != Result.SUCCESS) {
+                SwingUtilities.invokeLater(() -> {
+                    view.showErrorMessageBox("悔棋失败: " + response.getMessage(), "错误");
+                });
+            } else {
+                chessModel.move(response.getFrom(), response.getTo());
+                if (Objects.nonNull(response.getPieceJustEaten())) {
+                    chessModel.put(response.getFrom(), response.getPieceJustEaten());
+                }
+                enterMyTurn();
+                SwingUtilities.invokeLater(() -> {
+                    view.showInfoMessageBox("悔棋成功: " + response.getMessage(), "成功");
+                });
+            }
         }
     }
 
@@ -189,6 +273,16 @@ public class ChessViewController {
         }
     }
 
+    private void sendRetractRequest() {
+        RetractRequest request = new RetractRequest();
+        request.setRoomID(gameInfo.getRoomID());
+        request.setUserName(gameInfo.getUserName());
+        request.setFrom(lastMoveTo);
+        request.setTo(lastMoveFrom);
+        request.setPieceJustEaten(pieceJustEaten);
+        receiver.send(request);
+    }
+
     private void sendAdmitDefeatRequest() {
         AdmitDefeatRequest request = new AdmitDefeatRequest();
         request.setRoomID(gameInfo.getRoomID());
@@ -196,7 +290,7 @@ public class ChessViewController {
         receiver.send(request);
     }
 
-    private void sendMoveRequest(Piece piece, ChessBoardPoint from, ChessBoardPoint to) {
+    private void sendMoveRequest(ChessBoardPoint from, ChessBoardPoint to) {
         MovePieceRequest request = new MovePieceRequest();
 
         request.setRoomID(gameInfo.getRoomID());
@@ -205,8 +299,6 @@ public class ChessViewController {
         request.setTo(to);
 
         receiver.send(request);
-        appendLog(piece, from, to);
-        canMove = false;
     }
 
     private void appendLog(Piece piece, ChessBoardPoint from, ChessBoardPoint to) {
@@ -234,7 +326,12 @@ public class ChessViewController {
         String dyChinese = piece.isRed() ? convertToChinese(Math.abs(dy)) : Integer.toString(Math.abs(dy));
 
         switch (piece) {
-            case RED_GUARD, BLACK_GUARD, RED_HORSE, BLACK_HORSE, RED_ELEPHANT, BLACK_ELEPHANT -> {
+            case RED_GUARD:
+            case BLACK_GUARD:
+            case RED_HORSE:
+            case BLACK_HORSE:
+            case RED_ELEPHANT:
+            case BLACK_ELEPHANT: {
                 assert dy != 0;
 
                 result.append(startXChinese);
@@ -243,8 +340,9 @@ public class ChessViewController {
                 } else {
                     result.append("退").append(endXChinese);
                 }
+                break;
             }
-            default -> {
+            default: {
                 result.append(startXChinese);
 
                 if (dy > 0) {
@@ -254,10 +352,10 @@ public class ChessViewController {
                 } else {
                     result.append("平").append(endXChinese);
                 }
+                break;
             }
         }
 
         view.appendToLog(result.toString());
     }
 }
-

@@ -1,13 +1,12 @@
 package org.henu.chess.client.view;
 
 import com.formdev.flatlaf.FlatLightLaf;
+import org.henu.chess.common.view.AppWindow;
 
 import javax.swing.*;
 import java.awt.*;
 
-public class WaitingWindow {
-
-    private JFrame frame;
+public class WaitingWindow extends AppWindow {
     private JLabel lblUserName;
     private JLabel lblRoomID;
     private JLabel lblUserNameValue;
@@ -29,7 +28,7 @@ public class WaitingWindow {
             try {
                 FlatLightLaf.setup();
                 WaitingWindow window = new WaitingWindow();
-                window.frame.setVisible(true);
+                window.show();
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -40,34 +39,34 @@ public class WaitingWindow {
      * Initialize the contents of the frame.
      */
     private void initialize() {
-        frame = new JFrame();
-        frame.setResizable(false);
-        frame.setTitle("等待中...");
-        frame.setBounds(100, 100, 450, 200);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.getContentPane().setLayout(null);
+        getFrame().setResizable(false);
+        getFrame().setTitle("等待中...");
+        getFrame().setBounds(100, 100, 450, 200);
+        getFrame().setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        getFrame().getContentPane().setLayout(null);
 
         lblUserName = new JLabel("用户名：");
-        lblUserName.setFont(new Font("SimSun", Font.BOLD, 16));
+        lblUserName.setFont(getDefaultFont());
         lblUserName.setBounds(74, 56, 73, 19);
-        frame.getContentPane().add(lblUserName);
+        getFrame().getContentPane().add(lblUserName);
 
         lblRoomID = new JLabel("房间号：");
-        lblRoomID.setFont(new Font("SimSun", Font.BOLD, 16));
+        lblRoomID.setFont(getDefaultFont());
         lblRoomID.setBounds(74, 86, 73, 19);
-        frame.getContentPane().add(lblRoomID);
+        getFrame().getContentPane().add(lblRoomID);
 
         lblUserNameValue = new JLabel("");
-        lblUserNameValue.setFont(new Font("SimSun", Font.PLAIN, 16));
+        lblUserNameValue.setFont(getDefaultFont());
         lblUserNameValue.setBounds(157, 61, 271, 14);
-        frame.getContentPane().add(lblUserNameValue);
+        getFrame().getContentPane().add(lblUserNameValue);
 
 
         txtRoomID = new JTextField();
+        txtRoomID.setFont(getDefaultFont());
         txtRoomID.setEditable(false);
-        txtRoomID.setBounds(141, 86, 287, 20);
+        txtRoomID.setBounds(157, 86, 271, 20);
         txtRoomID.setColumns(10);
-        frame.getContentPane().add(txtRoomID);
+        getFrame().getContentPane().add(txtRoomID);
     }
 
     public JLabel getUserNameValueLabel() {
@@ -76,17 +75,5 @@ public class WaitingWindow {
 
     public JTextField getRoomIDTextField() {
         return txtRoomID;
-    }
-
-    public void show() {
-        frame.setVisible(true);
-    }
-
-    public void close() {
-        frame.setVisible(false);
-    }
-
-    public void dispose() {
-        frame.dispose();
     }
 }

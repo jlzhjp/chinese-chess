@@ -1,12 +1,28 @@
 package org.henu.chess.common.view;
 
 import javax.swing.*;
+import java.awt.*;
 
 public class AppWindow {
+    private static final Font defaultFont = new Font("Microsoft YaHei UI", Font.PLAIN, 12);
+    private static final Font defaultBoldFont = new Font("Microsoft YaHei UI", Font.BOLD, 12);
     private final JFrame frame;
 
     public AppWindow() {
         frame = new JFrame();
+        frame.setFont(defaultFont);
+    }
+
+    public Font getDefaultFont() {
+        return defaultFont;
+    }
+
+    public Font getDefaultBoldFont() {
+        return defaultBoldFont;
+    }
+
+    public void makeDefaultFont(JComponent component) {
+        component.setFont(defaultFont);
     }
 
     public void showInfoMessageBox(String content, String title) {

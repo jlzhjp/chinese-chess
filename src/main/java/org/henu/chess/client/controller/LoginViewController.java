@@ -63,14 +63,16 @@ public class LoginViewController {
         String userName = view.getUserNameTextField().getText();
 
         switch (response.getResult()) {
-            case SUCCESS -> {
+            case SUCCESS: {
                 JoinRoomRequest request = new JoinRoomRequest();
                 request.setRoomID(response.getRoomID());
                 request.setUserName(userName);
                 receiver.send(request);
+                break;
             }
-            case ERROR -> {
+            case ERROR: {
                 view.showErrorMessageBox(response.getMessage(), "创建房间失败");
+                break;
             }
         }
     }
@@ -97,7 +99,7 @@ public class LoginViewController {
 
     private void handleJoinRoomResponse(JoinRoomResponse response) {
         switch (response.getResult()) {
-            case SUCCESS -> {
+            case SUCCESS: {
                 if (isRoomCreator) {
                     SwingUtilities.invokeLater(() -> {
                         view.close();
@@ -110,9 +112,11 @@ public class LoginViewController {
                         waitingWindow.show();
                     });
                 }
+                break;
             }
-            case ERROR -> {
+            case ERROR: {
                 SwingUtilities.invokeLater(() -> view.showErrorMessageBox(response.getMessage(), "加入房间失败"));
+                break;
             }
         }
     }

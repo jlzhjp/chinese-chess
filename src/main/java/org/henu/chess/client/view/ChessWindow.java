@@ -63,7 +63,7 @@ public class ChessWindow extends AppWindow {
         getFrame().getContentPane().add(chessPanel);
 
         logWrapper = new JPanel();
-        logWrapper.setBorder(new TitledBorder(null, "对局记录", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+        logWrapper.setBorder(new TitledBorder(null, "对局记录", TitledBorder.LEADING, TitledBorder.TOP, getDefaultFont(), null));
         logWrapper.setBounds(620, 285, 281, 320);
         getFrame().getContentPane().add(logWrapper);
         logWrapper.setLayout(new BorderLayout(0, 0));
@@ -72,45 +72,50 @@ public class ChessWindow extends AppWindow {
         logWrapper.add(logScrollWrapper);
 
         txtLog = new JTextArea();
+        txtLog.setFont(getDefaultFont());
         txtLog.setEditable(false);
         logScrollWrapper.setViewportView(txtLog);
 
         userInfoWrapper = new JPanel();
-        userInfoWrapper.setBorder(new TitledBorder(null, "棋手信息", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+        userInfoWrapper.setBorder(new TitledBorder(null, "棋手信息", TitledBorder.LEADING, TitledBorder.TOP, getDefaultFont(), null));
         userInfoWrapper.setBounds(620, 11, 281, 91);
         getFrame().getContentPane().add(userInfoWrapper);
         userInfoWrapper.setLayout(null);
 
         lblRed = new JLabel("红方：");
+        lblRed.setFont(getDefaultFont());
         lblRed.setBounds(10, 31, 261, 14);
         userInfoWrapper.add(lblRed);
 
         lblBlack = new JLabel("黑方：");
+        lblBlack.setFont(getDefaultFont());
         lblBlack.setBounds(10, 56, 261, 14);
         userInfoWrapper.add(lblBlack);
 
         remainingTimeWrapper = new JPanel();
-        remainingTimeWrapper.setBorder(new TitledBorder(null, "剩余时间", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+        remainingTimeWrapper.setBorder(new TitledBorder(null, "剩余时间", TitledBorder.LEADING, TitledBorder.TOP, getDefaultFont(), null));
         remainingTimeWrapper.setBounds(620, 113, 281, 91);
         getFrame().getContentPane().add(remainingTimeWrapper);
         remainingTimeWrapper.setLayout(null);
 
         lblRemainingTime = new JLabel("--");
+        lblRemainingTime.setFont(getDefaultFont());
         lblRemainingTime.setBounds(126, 37, 58, 25);
-        lblRemainingTime.setFont(new Font("Tahoma", Font.BOLD, 32));
         remainingTimeWrapper.add(lblRemainingTime);
 
         operationWrapper = new JPanel();
-        operationWrapper.setBorder(new TitledBorder(null, "操作", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+        operationWrapper.setBorder(new TitledBorder(null, "操作", TitledBorder.LEADING, TitledBorder.TOP, getDefaultFont(), null));
         operationWrapper.setBounds(620, 215, 281, 59);
         getFrame().getContentPane().add(operationWrapper);
         operationWrapper.setLayout(null);
 
         btnRetract = new JButton("悔棋");
+        btnRetract.setFont(getDefaultFont());
         btnRetract.setBounds(42, 25, 89, 23);
         operationWrapper.add(btnRetract);
 
         btnAdmitDefeat = new JButton("认输");
+        btnAdmitDefeat.setFont(getDefaultFont());
         btnAdmitDefeat.setBounds(153, 25, 89, 23);
         operationWrapper.add(btnAdmitDefeat);
     }

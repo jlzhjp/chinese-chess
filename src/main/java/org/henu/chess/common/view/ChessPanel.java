@@ -12,15 +12,19 @@ import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Map;
 import java.util.Objects;
 
 public class ChessPanel extends JPanel implements PropertyChangeListener {
-    static final int LATTICE_SIZE = 57;
-    static final int MARGIN = 32;
-    static final int PIECE_SIZE = 57;
+    public static final int CHESS_BOARD_WIDTH = 521;
+    public static final int CHESS_BOARD_HEIGHT = 577;
+    private static final int LATTICE_SIZE = 57;
+    private static final int MARGIN = 32;
+    private static final int PIECE_SIZE = 57;
     private final Image boardImage = ImageLoader.load("/WOOD_BOARD.GIF");
     private ChessPanelListener listener;
     private ChessPanelModel model;
+
     public ChessPanel() {
         this.addMouseListener(new MouseAdapter() {
             @Override
@@ -66,12 +70,14 @@ public class ChessPanel extends JPanel implements PropertyChangeListener {
     public void paintChessBoard(Graphics g) {
         g.drawImage(boardImage, 0, 0, boardImage.getWidth(this), boardImage.getHeight(this), this);
 
-        var pieces = model.getPieces();
-        for (var piece : pieces.entrySet()) {
-            paintPiece(g, piece.getKey(), piece.getValue());
-        }
-        for (var move : model.getAvailableMoves()) {
-            paintAvailableMove(g, move);
+        if (Objects.nonNull(model)) {
+            Map<ChessBoardPoint, Piece> pieces = model.getPieces();
+            for (Map.Entry<ChessBoardPoint, Piece> piece : pieces.entrySet()) {
+                paintPiece(g, piece.getKey(), piece.getValue());
+            }
+            for (ChessBoardPoint move : model.getAvailableMoves()) {
+                paintAvailableMove(g, move);
+            }
         }
     }
 

@@ -11,6 +11,7 @@ public class SocketReceiver implements AutoCloseable {
     private final PrintWriter writer;
     private final int port;
     private final String ipAddress;
+
     public SocketReceiver(Socket socket) throws IOException {
         this.socket = socket;
         this.port = socket.getPort();
@@ -32,9 +33,9 @@ public class SocketReceiver implements AutoCloseable {
      * @param handler Socket 消息处理器
      */
     public void listen(SocketMessageHandler handler) {
-        var that = this;
+        SocketReceiver that = this;
         new Thread(() -> {
-            try (var reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8))) {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
                     synchronized (that) {

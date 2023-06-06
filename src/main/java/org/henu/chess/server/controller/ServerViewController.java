@@ -1,17 +1,22 @@
 package org.henu.chess.server.controller;
 
+import org.henu.chess.common.GameStatus;
 import org.henu.chess.common.MessageListener;
 import org.henu.chess.common.SocketMessageReceiver;
+import org.henu.chess.common.messages.Message;
 import org.henu.chess.common.messages.Result;
-import org.henu.chess.common.messages.request.AdmitDefeatRequest;
-import org.henu.chess.common.messages.request.CreateRoomRequest;
-import org.henu.chess.common.messages.request.JoinRoomRequest;
-import org.henu.chess.common.messages.request.MovePieceRequest;
+import org.henu.chess.common.messages.request.*;
 import org.henu.chess.common.messages.response.*;
+import org.henu.chess.common.model.ChessPanelModel;
 import org.henu.chess.server.model.GameTable;
 import org.henu.chess.server.view.ServerWindow;
+import org.henu.chess.server.view.WatchBattleWindow;
 
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -32,6 +37,25 @@ public class ServerViewController {
         this.view = view;
         view.getStartButton().addActionListener(this::handleStartButtonClicked);
         view.getStopButton().addActionListener(this::handleStopButtonClicked);
+        view.getTable().addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                JTable table = (JTable) e.getSource();
+                Point point = e.getPoint();
+                int row = table.rowAtPoint(point);
+
+                if (e.getClickCount() == 2 && table.getSelectedRow() != -1) {
+                    String roomID = (String) table.getValueAt(row, 0);
+                    GameTable gameTable = gameTables.get(roomID);
+
+                    if (Objects.nonNull(gameTable) && gameTable.getStatus() == GameStatus.PLAYING) {
+                        WatchBattleWindow watchBattleWindow = new WatchBattleWindow();
+                        WatchBattleWindowController controller = new WatchBattleWindowController(watchBattleWindow, gameTable.getChessPanelModel());
+                        watchBattleWindow.show();
+                    }
+                }
+            }
+        });
     }
 
     private void handleStartButtonClicked(ActionEvent e) {
@@ -50,11 +74,14 @@ public class ServerViewController {
                 try {
                     Socket socket = serverSocket.accept();
                     SocketMessageReceiver receiver = new SocketMessageReceiver(socket);
-                    var listener = new MessageListener()
+                    MessageListener listener = new MessageListener()
                             .on(CreateRoomRequest.class, (request) -> handleCreateRoomRequest(receiver, request))
                             .on(JoinRoomRequest.class, (request) -> handleJoinRoomRequest(receiver, request))
                             .on(MovePieceRequest.class, this::handleMovePieceRequest)
-                            .on(AdmitDefeatRequest.class, this::handleAdmitDefeatRequest);
+                            .on(AdmitDefeatRequest.class, this::handleAdmitDefeatRequest)
+                            .on(RetractRequest.class, this::handleRetractRequest)
+                            .on(RetractReplyRequest.class, this::handleRetractReplyRequest);
+
                     receiver.setListener(listener);
                     receiver.listen();
                 } catch (IOException ex) {
@@ -65,6 +92,47 @@ public class ServerViewController {
         }).start();
     }
 
+    private void handleRetractRequest(RetractRequest request) {
+        GameTable gameTable = gameTables.get(request.getRoomID());
+        if (Objects.isNull(gameTable)) {
+            return;
+        }
+
+        RetractResponse response = new RetractResponse();
+        response.setResult(Result.SUCCESS);
+        response.setFrom(request.getFrom());
+        response.setTo(request.getTo());
+        response.setPieceJustEaten(request.getPieceJustEaten());
+
+        sendToAnother(gameTable, request.getUserName(), response);
+    }
+
+    private void handleRetractReplyRequest(RetractReplyRequest request) {
+        GameTable gameTable = gameTables.get(request.getRoomID());
+        if (Objects.isNull(gameTable)) {
+            return;
+        }
+
+        RetractResponse response = new RetractResponse();
+        response.setFrom(request.getFrom());
+        response.setTo(request.getTo());
+        response.setPieceJustEaten(request.getPieceJustEaten());
+
+        if (request.isAgree()) {
+            response.setResult(Result.SUCCESS);
+            response.setMessage("对方已同意");
+            gameTable.getChessPanelModel().move(request.getFrom(), request.getTo());
+            if (Objects.nonNull(request.getPieceJustEaten())) {
+                gameTable.getChessPanelModel().put(request.getFrom(), request.getPieceJustEaten());
+            }
+        } else {
+            response.setResult(Result.SUCCESS);
+            response.setMessage("对方已拒绝");
+        }
+
+        sendToAnother(gameTable, request.getUserName(), response);
+    }
+
     private void handleCreateRoomRequest(SocketMessageReceiver receiver, CreateRoomRequest request) {
         String roomID = generateRandomRoomID();
         CreateRoomResponse response = new CreateRoomResponse();
@@ -73,6 +141,7 @@ public class ServerViewController {
         response.setMessage("");
         GameTable table = new GameTable();
         table.setRow(view.getTableModel().getRowCount());
+        table.setStatus(GameStatus.WAITING_FOR_PLAYER);
         gameTables.put(roomID, table);
         view.getTableModel().addRow(new Object[]{roomID, "", "", "等待中"});
         receiver.send(response);
@@ -115,10 +184,12 @@ public class ServerViewController {
             response.setBlackPlayerName(table.getBlackPlayer());
             response.setResult(Result.SUCCESS);
 
-            view.getTableModel().setValueAt("游戏中", table.getRow(), 3);
-
             table.getRedPlayerReceiver().send(response);
             table.getBlackPlayerReceiver().send(response);
+
+            view.getTableModel().setValueAt("游戏中", table.getRow(), 3);
+            table.setStatus(GameStatus.PLAYING);
+            table.setChessPanelModel(ChessPanelModel.initial(true));
         }
     }
 
@@ -139,11 +210,9 @@ public class ServerViewController {
         response.setFrom(request.getFrom());
         response.setTo(request.getTo());
 
-        if (Objects.equals(request.getUserName(), table.getRedPlayer())) {
-            table.getBlackPlayerReceiver().send(response);
-        } else {
-            table.getRedPlayerReceiver().send(response);
-        }
+        sendToAnother(table, request.getUserName(), response);
+
+        table.getChessPanelModel().move(request.getFrom(), request.getTo());
     }
 
     private void handleAdmitDefeatRequest(AdmitDefeatRequest request) {
@@ -167,6 +236,7 @@ public class ServerViewController {
 
         table.getBlackPlayerReceiver().send(response);
         table.getRedPlayerReceiver().send(response);
+        view.getTableModel().setValueAt("已结束", table.getRow(), 3);
     }
 
     private void handleStopButtonClicked(ActionEvent e) {
@@ -195,6 +265,14 @@ public class ServerViewController {
         } else {
             usedRoomID.add(result);
             return result;
+        }
+    }
+
+    private void sendToAnother(GameTable gameTable, String currentUserName, Message message) {
+        if (Objects.equals(currentUserName, gameTable.getRedPlayer())) {
+            gameTable.getBlackPlayerReceiver().send(message);
+        } else if (Objects.equals(currentUserName, gameTable.getBlackPlayer())) {
+            gameTable.getRedPlayerReceiver().send(message);
         }
     }
 }

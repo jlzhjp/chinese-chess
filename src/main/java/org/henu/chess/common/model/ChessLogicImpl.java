@@ -22,15 +22,31 @@ public class ChessLogicImpl implements ChessLogic {
     public List<ChessBoardPoint> getAvailablePointForPieceAt(Map<ChessBoardPoint, Piece> pieces, ChessBoardPoint point) {
         Piece piece = pieces.get(point);
 
-        return switch (piece) {
-            case RED_GENERAL, BLACK_GENERAL -> getAvailablePointForGeneral(pieces, point);
-            case RED_GUARD, BLACK_GUARD -> getAvailablePointForGuard(pieces, point);
-            case RED_ELEPHANT, BLACK_ELEPHANT -> getAvailablePointForElephant(pieces, point);
-            case RED_HORSE, BLACK_HORSE -> getAvailablePointForHorse(pieces, point);
-            case RED_CHARIOT, BLACK_CHARIOT -> getAvailablePointForChariot(pieces, point);
-            case RED_CANNON, BLACK_CANNON -> getAvailablePointForCannon(pieces, point);
-            case RED_SOLDIER, BLACK_SOLDIER -> getAvailablePointForSoldier(pieces, point);
-        };
+        switch (piece) {
+            case RED_GENERAL:
+            case BLACK_GENERAL:
+                return getAvailablePointForGeneral(pieces, point);
+            case RED_GUARD:
+            case BLACK_GUARD:
+                return getAvailablePointForGuard(pieces, point);
+            case RED_ELEPHANT:
+            case BLACK_ELEPHANT:
+                return getAvailablePointForElephant(pieces, point);
+            case RED_HORSE:
+            case BLACK_HORSE:
+                return getAvailablePointForHorse(pieces, point);
+            case RED_CHARIOT:
+            case BLACK_CHARIOT:
+                return getAvailablePointForChariot(pieces, point);
+            case RED_CANNON:
+            case BLACK_CANNON:
+                return getAvailablePointForCannon(pieces, point);
+            case RED_SOLDIER:
+            case BLACK_SOLDIER:
+                return getAvailablePointForSoldier(pieces, point);
+            default:
+                throw new IllegalArgumentException("Unknown piece: " + piece);
+        }
     }
 
     private List<ChessBoardPoint> getAvailablePointForGeneral(Map<ChessBoardPoint, Piece> pieces, ChessBoardPoint point) {
@@ -115,7 +131,7 @@ public class ChessLogicImpl implements ChessLogic {
 
         int[][] checkPoints = {{-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
 
-        for (var checkPoint : checkPoints) {
+        for (int[] checkPoint : checkPoints) {
             if (noPiece(pieces, x + checkPoint[0], y + checkPoint[1])) {
                 int newX = point.getX() + checkPoint[0] * 2;
                 int newY = point.getY() + checkPoint[1] * 2;

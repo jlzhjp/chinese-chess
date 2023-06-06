@@ -1,13 +1,12 @@
 package org.henu.chess.client.view;
 
 import com.formdev.flatlaf.FlatLightLaf;
+import org.henu.chess.common.view.AppWindow;
 
 import javax.swing.*;
 import java.awt.*;
 
-public class ServerInfoWindow {
-
-    private JFrame frame;
+public class ServerInfoWindow extends AppWindow {
     private JLabel lblServerIPAddress;
     private JTextField txtServerIPAddress;
     private JLabel lblPort;
@@ -29,7 +28,7 @@ public class ServerInfoWindow {
             try {
                 FlatLightLaf.setup();
                 ServerInfoWindow window = new ServerInfoWindow();
-                window.frame.setVisible(true);
+                window.show();
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -40,7 +39,7 @@ public class ServerInfoWindow {
      * Initialize the contents of the frame.
      */
     private void initialize() {
-        frame = new JFrame();
+        JFrame frame = getFrame();
         frame.setTitle("连接服务器");
         frame.setBounds(100, 100, 450, 163);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -48,26 +47,31 @@ public class ServerInfoWindow {
         frame.setResizable(false);
 
         lblServerIPAddress = new JLabel("服务器地址：");
+        lblServerIPAddress.setFont(getDefaultFont());
         lblServerIPAddress.setBounds(10, 32, 75, 14);
         frame.getContentPane().add(lblServerIPAddress);
 
         txtServerIPAddress = new JTextField();
+        lblServerIPAddress.setFont(getDefaultFont());
         txtServerIPAddress.setText("127.0.0.1");
         txtServerIPAddress.setBounds(95, 29, 333, 20);
         frame.getContentPane().add(txtServerIPAddress);
         txtServerIPAddress.setColumns(10);
 
         lblPort = new JLabel("端口号：");
+        lblPort.setFont(getDefaultFont());
         lblPort.setBounds(10, 75, 48, 14);
         frame.getContentPane().add(lblPort);
 
         txtPort = new JTextField();
+        txtPort.setFont(getDefaultFont());
         txtPort.setText("8888");
         txtPort.setBounds(95, 72, 96, 20);
         frame.getContentPane().add(txtPort);
         txtPort.setColumns(10);
 
         btnConnect = new JButton("连接");
+        btnConnect.setFont(getDefaultFont());
         btnConnect.setBounds(339, 94, 89, 23);
         frame.getContentPane().add(btnConnect);
     }
@@ -82,25 +86,5 @@ public class ServerInfoWindow {
 
     public JButton getConnectButton() {
         return btnConnect;
-    }
-
-    public void showErrorMessageBox(String message, String title) {
-        JOptionPane.showMessageDialog(frame, message, title, JOptionPane.ERROR_MESSAGE);
-    }
-
-    public void showInfoMessageBox(String message, String title) {
-        JOptionPane.showMessageDialog(frame, message, title, JOptionPane.INFORMATION_MESSAGE);
-    }
-
-    public void show() {
-        frame.setVisible(true);
-    }
-
-    public void close() {
-        frame.setVisible(false);
-    }
-
-    public void dispose() {
-        frame.dispose();
     }
 }

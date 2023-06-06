@@ -9,7 +9,7 @@ public class MessageListener {
     HashMap<String, TypedMessageHandler> handlers = new HashMap<>();
 
     void onMessage(Message message) {
-        var className = message.getClass().getName();
+        String className = message.getClass().getName();
         if (handlers.containsKey(message.getClass().getName())) {
             //noinspection unchecked
             handlers.get(className).handle(message);
