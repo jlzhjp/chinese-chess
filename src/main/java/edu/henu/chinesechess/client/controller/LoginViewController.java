@@ -1,19 +1,20 @@
 package edu.henu.chinesechess.client.controller;
 
-import edu.henu.chinesechess.client.view.LoginWindow;
-import edu.henu.chinesechess.common.messages.response.JoinRoomResponse;
 import edu.henu.chinesechess.client.model.GameInfo;
 import edu.henu.chinesechess.client.view.ChessWindow;
+import edu.henu.chinesechess.client.view.LoginWindow;
 import edu.henu.chinesechess.client.view.WaitingWindow;
 import edu.henu.chinesechess.common.MessageListener;
 import edu.henu.chinesechess.common.SocketMessageReceiver;
 import edu.henu.chinesechess.common.messages.request.CreateRoomRequest;
 import edu.henu.chinesechess.common.messages.request.JoinRoomRequest;
 import edu.henu.chinesechess.common.messages.response.CreateRoomResponse;
+import edu.henu.chinesechess.common.messages.response.JoinRoomResponse;
 import edu.henu.chinesechess.common.messages.response.StartGameResponse;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
+import java.util.Objects;
 
 public class LoginViewController {
     private final LoginWindow view;
@@ -28,8 +29,8 @@ public class LoginViewController {
         view.getIPAddressTextField().setText(receiver.getIPAddress());
         view.getPortTextField().setText(Integer.toString(receiver.getPort()));
 
-        view.getCreateRoomButton().addActionListener(this::handleCreateRoomButtonClick);
-        view.getJoinRoomButton().addActionListener(this::handleJoinRoomButtonClick);
+        view.getCreateRoomButton().addActionListener(this::handleCreateRoomButtonClicked);
+        view.getJoinRoomButton().addActionListener(this::handleJoinRoomButtonClicked);
 
         receiver.setListener(new MessageListener()
                 .on(CreateRoomResponse.class, this::handleCreateRoomResponse)
@@ -37,23 +38,37 @@ public class LoginViewController {
                 .on(StartGameResponse.class, this::handleStartGameResponse));
     }
 
-    private void handleJoinRoomButtonClick(ActionEvent e) {
+    private void handleJoinRoomButtonClicked(ActionEvent e) {
         isRoomCreator = false;
         String roomID = view.getRoomIDTextField().getText();
+        String userName = view.getUserNameTextField().getText();
+
+        if (Objects.equals(userName, "")) {
+            view.showErrorMessageBox("请输入用户名", "创建房间失败");
+            return;
+        }
 
         if (roomID.isEmpty()) {
             view.showErrorMessageBox("请输入房间号", "加入房间失败");
             return;
         }
+
         JoinRoomRequest request = new JoinRoomRequest();
         this.roomID = roomID;
         request.setRoomID(roomID);
-        request.setUserName(view.getUserNameTextField().getText());
+        request.setUserName(userName);
         receiver.send(request);
     }
 
-    private void handleCreateRoomButtonClick(ActionEvent e) {
+    private void handleCreateRoomButtonClicked(ActionEvent e) {
         isRoomCreator = true;
+
+        String userName = view.getUserNameTextField().getText();
+        if (Objects.equals(userName, "")) {
+            view.showErrorMessageBox("请输入用户名", "创建房间失败");
+            return;
+        }
+
         CreateRoomRequest request = new CreateRoomRequest();
         receiver.send(request);
     }
@@ -81,7 +96,6 @@ public class LoginViewController {
         String userName = view.getUserNameTextField().getText();
         SwingUtilities.invokeLater(() -> {
             view.close();
-            view.dispose();
 
             ChessWindow chessWindow = new ChessWindow();
 
@@ -92,7 +106,9 @@ public class LoginViewController {
             info.setBlackPlayer(response.getBlackPlayerName());
             info.setRedPlayer(response.getRedPlayerName());
 
-            ChessViewController controller = new ChessViewController(chessWindow, info, receiver);
+            ChessViewController controller = new ChessViewController(chessWindow, info, receiver, () -> {
+                SwingUtilities.invokeLater(view::show);
+            });
             chessWindow.show();
         });
     }
@@ -103,12 +119,11 @@ public class LoginViewController {
                 if (isRoomCreator) {
                     SwingUtilities.invokeLater(() -> {
                         view.close();
-                        view.dispose();
 
                         String userName = view.getUserNameTextField().getText();
                         // show waiting window
                         WaitingWindow waitingWindow = new WaitingWindow();
-                        WaitingViewController waitingViewController = new WaitingViewController(receiver, waitingWindow, userName, roomID);
+                        WaitingViewController waitingViewController = new WaitingViewController(receiver, waitingWindow, userName, roomID, view::show);
                         waitingWindow.show();
                     });
                 }

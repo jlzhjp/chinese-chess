@@ -1,7 +1,7 @@
 package edu.henu.chinesechess.common.messages.response;
 
-import edu.henu.chinesechess.common.messages.Result;
 import edu.henu.chinesechess.common.messages.Message;
+import edu.henu.chinesechess.common.messages.Result;
 
 import java.util.Objects;
 

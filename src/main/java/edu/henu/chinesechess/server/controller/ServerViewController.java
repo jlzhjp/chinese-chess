@@ -1,16 +1,17 @@
 package edu.henu.chinesechess.server.controller;
 
 import edu.henu.chinesechess.common.GameStatus;
+import edu.henu.chinesechess.common.MessageListener;
+import edu.henu.chinesechess.common.SocketMessageReceiver;
 import edu.henu.chinesechess.common.messages.Message;
 import edu.henu.chinesechess.common.messages.Result;
 import edu.henu.chinesechess.common.messages.request.*;
 import edu.henu.chinesechess.common.messages.response.*;
 import edu.henu.chinesechess.common.model.ChessPanelModel;
+import edu.henu.chinesechess.common.model.Piece;
 import edu.henu.chinesechess.server.model.GameTable;
 import edu.henu.chinesechess.server.view.ServerWindow;
 import edu.henu.chinesechess.server.view.WatchBattleWindow;
-import edu.henu.chinesechess.common.MessageListener;
-import edu.henu.chinesechess.common.SocketMessageReceiver;
 
 import javax.swing.*;
 import java.awt.*;
@@ -187,7 +188,7 @@ public class ServerViewController {
             table.getRedPlayerReceiver().send(response);
             table.getBlackPlayerReceiver().send(response);
 
-            view.getTableModel().setValueAt("游戏中", table.getRow(), 3);
+            setGameStatus(table, "游戏中");
             table.setStatus(GameStatus.PLAYING);
             table.setChessPanelModel(ChessPanelModel.initial(true));
         }
@@ -212,6 +213,14 @@ public class ServerViewController {
 
         sendToAnother(table, request.getUserName(), response);
 
+        Piece toPiece = table.getChessPanelModel().pieceAt(request.getTo());
+        if (toPiece == Piece.BLACK_GENERAL || toPiece == Piece.RED_GENERAL) {
+            String winner = request.getUserName();
+            sendGameOverResponseToAll(table, request.getUserName(), "将死");
+            setGameStatus(table, "胜方: " + winner);
+            return;
+        }
+
         table.getChessPanelModel().move(request.getFrom(), request.getTo());
     }
 
@@ -226,17 +235,23 @@ public class ServerViewController {
             return;
         }
 
-        GameOverResponse response = new GameOverResponse();
-
+        String winner;
         if (Objects.equals(request.getUserName(), table.getRedPlayer())) {
-            response.setWinner(table.getBlackPlayer());
+            winner = table.getBlackPlayer();
         } else {
-            response.setWinner(table.getRedPlayer());
+            winner = table.getRedPlayer();
         }
 
-        table.getBlackPlayerReceiver().send(response);
-        table.getRedPlayerReceiver().send(response);
-        view.getTableModel().setValueAt("已结束", table.getRow(), 3);
+        sendGameOverResponseToAll(table, winner, request.getUserName() + " 已认输");
+        setGameStatus(table, "胜方: " + winner);
+    }
+
+    public void sendGameOverResponseToAll(GameTable table, String winner, String message) {
+        GameOverResponse gameOverResponse = new GameOverResponse();
+        gameOverResponse.setWinner(winner);
+        gameOverResponse.setMessage(message);
+        table.getRedPlayerReceiver().send(gameOverResponse);
+        table.getBlackPlayerReceiver().send(gameOverResponse);
     }
 
     private void handleStopButtonClicked(ActionEvent e) {
@@ -266,6 +281,10 @@ public class ServerViewController {
             usedRoomID.add(result);
             return result;
         }
+    }
+
+    public void setGameStatus(GameTable table, String status) {
+        view.getTableModel().setValueAt(status, table.getRow(), 3);
     }
 
     private void sendToAnother(GameTable gameTable, String currentUserName, Message message) {

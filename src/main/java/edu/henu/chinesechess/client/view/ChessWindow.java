@@ -3,8 +3,9 @@ package edu.henu.chinesechess.client.view;
 import com.formdev.flatlaf.FlatLightLaf;
 import edu.henu.chinesechess.common.model.ChessLogicImpl;
 import edu.henu.chinesechess.common.model.ChessPanelModel;
-import edu.henu.chinesechess.common.view.ChessPanel;
+import edu.henu.chinesechess.common.model.ChessRecord;
 import edu.henu.chinesechess.common.view.AppWindow;
+import edu.henu.chinesechess.common.view.ChessPanel;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
@@ -13,7 +14,8 @@ import java.awt.*;
 public class ChessWindow extends AppWindow {
     private ChessPanel chessPanel;
     private JScrollPane logScrollWrapper;
-    private JTextArea txtLog;
+    private JList<ChessRecord> logList;
+    private DefaultListModel<ChessRecord> logListModel = new DefaultListModel<>();
     private JPanel logWrapper;
     private JPanel userInfoWrapper;
     private JLabel lblRed;
@@ -58,7 +60,7 @@ public class ChessWindow extends AppWindow {
         getFrame().getContentPane().setLayout(null);
 
         chessPanel = new ChessPanel();
-        chessPanel.setBounds(10, 11, 600, 600);
+        chessPanel.setBounds(20, 20, ChessPanel.CHESS_BOARD_WIDTH, ChessPanel.CHESS_BOARD_HEIGHT);
         chessPanel.setModel(new ChessPanelModel(new ChessLogicImpl()));
         getFrame().getContentPane().add(chessPanel);
 
@@ -71,10 +73,10 @@ public class ChessWindow extends AppWindow {
         logScrollWrapper = new JScrollPane();
         logWrapper.add(logScrollWrapper);
 
-        txtLog = new JTextArea();
-        txtLog.setFont(getDefaultFont());
-        txtLog.setEditable(false);
-        logScrollWrapper.setViewportView(txtLog);
+        logList = new JList<>();
+        logList.setFont(getDefaultFont());
+        logList.setModel(logListModel);
+        logScrollWrapper.setViewportView(logList);
 
         userInfoWrapper = new JPanel();
         userInfoWrapper.setBorder(new TitledBorder(null, "棋手信息", TitledBorder.LEADING, TitledBorder.TOP, getDefaultFont(), null));
@@ -132,8 +134,12 @@ public class ChessWindow extends AppWindow {
         return chessPanel;
     }
 
-    public void appendToLog(String line) {
-        txtLog.append(line + "\n");
+    public JList<ChessRecord> getLogList() {
+        return logList;
+    }
+
+    public DefaultListModel<ChessRecord> getLogListModel() {
+        return logListModel;
     }
 
     public JLabel getRemainingTimeLabel() {
@@ -146,5 +152,9 @@ public class ChessWindow extends AppWindow {
 
     public JButton getAdmitDefeatButton() {
         return btnAdmitDefeat;
+    }
+
+    public JFrame getWindow() {
+        return getFrame();
     }
 }

@@ -1,8 +1,8 @@
 package edu.henu.chinesechess.common.view;
 
 import edu.henu.chinesechess.common.ImageLoader;
-import edu.henu.chinesechess.common.model.ChessPanelModel;
 import edu.henu.chinesechess.common.model.ChessBoardPoint;
+import edu.henu.chinesechess.common.model.ChessPanelModel;
 import edu.henu.chinesechess.common.model.Piece;
 
 import javax.swing.*;

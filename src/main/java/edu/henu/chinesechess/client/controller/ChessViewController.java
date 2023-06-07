@@ -2,19 +2,21 @@ package edu.henu.chinesechess.client.controller;
 
 import edu.henu.chinesechess.client.model.GameInfo;
 import edu.henu.chinesechess.client.view.ChessWindow;
+import edu.henu.chinesechess.common.ChessRecorder;
+import edu.henu.chinesechess.common.MessageListener;
 import edu.henu.chinesechess.common.SocketMessageReceiver;
 import edu.henu.chinesechess.common.messages.Result;
 import edu.henu.chinesechess.common.messages.request.AdmitDefeatRequest;
-import edu.henu.chinesechess.common.messages.request.RetractRequest;
-import edu.henu.chinesechess.common.messages.response.GameOverResponse;
-import edu.henu.chinesechess.common.model.ChessBoardPoint;
-import edu.henu.chinesechess.common.model.ChessPanelModel;
-import edu.henu.chinesechess.common.model.Piece;
-import edu.henu.chinesechess.common.MessageListener;
 import edu.henu.chinesechess.common.messages.request.MovePieceRequest;
 import edu.henu.chinesechess.common.messages.request.RetractReplyRequest;
+import edu.henu.chinesechess.common.messages.request.RetractRequest;
+import edu.henu.chinesechess.common.messages.response.GameOverResponse;
 import edu.henu.chinesechess.common.messages.response.MovePieceResponse;
 import edu.henu.chinesechess.common.messages.response.RetractResponse;
+import edu.henu.chinesechess.common.model.ChessBoardPoint;
+import edu.henu.chinesechess.common.model.ChessPanelModel;
+import edu.henu.chinesechess.common.model.ChessRecord;
+import edu.henu.chinesechess.common.model.Piece;
 
 import javax.swing.*;
 import java.awt.*;
@@ -43,19 +45,24 @@ public class ChessViewController {
     private final ChessWindow view;
     private final GameInfo gameInfo;
     private final SocketMessageReceiver receiver;
+    private final ChessRecorder chessRecorder;
     private Timer timer;
     private int remainingTime = 60;
     private boolean canMove;
-
+    private boolean isGameOver;
     private ChessBoardPoint lastMoveFrom;
     private ChessBoardPoint lastMoveTo;
     private Piece pieceJustEaten;
+    private final Runnable onBack;
 
-    public ChessViewController(ChessWindow view, GameInfo gameInfo, SocketMessageReceiver receiver) {
+    public ChessViewController(ChessWindow view, GameInfo gameInfo, SocketMessageReceiver receiver, Runnable onBack) {
         this.view = view;
         this.chessModel = ChessPanelModel.initial(gameInfo.isRed());
         this.gameInfo = gameInfo;
         this.receiver = receiver;
+        this.onBack = onBack;
+
+        chessRecorder = new ChessRecorder(chessModel.getLogic().getBoardWidth(), chessModel.getLogic().getBoardHeight());
 
         timer = new Timer(1000, e -> {
             SwingUtilities.invokeLater(() -> view.getRemainingTimeLabel().setText(Integer.toString(remainingTime)));
@@ -81,11 +88,21 @@ public class ChessViewController {
             view.getBlackPlayerLabel().setForeground(Color.RED);
         }
 
+        view.getWindow().addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+                if (!isGameOver) {
+                    sendAdmitDefeatRequest();
+                }
+                onBack.run();
+            }
+        });
         view.getChessPanel().setModel(chessModel);
         view.getChessPanel().setListener(this::handleChessPanelClicked);
         view.getAdmitDefeatButton().addActionListener(this::handleAdmitDefeatButtonClicked);
         view.getRetractButton().addActionListener(this::handleRetractButtonClicked);
         view.getRetractButton().setEnabled(false);
+        view.getLogList().setCellRenderer(chessRecorder.getCellRenderer(view.getDefaultFont()));
 
         MessageListener listener = new MessageListener()
                 .on(MovePieceResponse.class, this::handleMovePieceResponse)
@@ -93,31 +110,6 @@ public class ChessViewController {
                 .on(GameOverResponse.class, this::handleGameOverResponse);
 
         receiver.setListener(listener);
-    }
-
-    public static String convertToChinese(int n) {
-        switch (n) {
-            case 1:
-                return "一";
-            case 2:
-                return "二";
-            case 3:
-                return "三";
-            case 4:
-                return "四";
-            case 5:
-                return "五";
-            case 6:
-                return "六";
-            case 7:
-                return "七";
-            case 8:
-                return "八";
-            case 9:
-                return "九";
-            default:
-                return "";
-        }
     }
 
     private void handleMovePieceResponse(MovePieceResponse response) {
@@ -135,7 +127,7 @@ public class ChessViewController {
             if (isCheckMate()) {
                 view.showInfoMessageBox("将军!", "警告");
             }
-            appendLog(piece, response.getFrom(), response.getTo());
+            addRecord(piece, response.getFrom(), response.getTo());
         });
 
         enterMyTurn();
@@ -185,9 +177,16 @@ public class ChessViewController {
 
     private void handleGameOverResponse(GameOverResponse response) {
         leaveMyTurn();
+        view.getRetractButton().setEnabled(false);
         receiver.close();
+        isGameOver = true;
         SwingUtilities.invokeLater(() -> {
-            view.showInfoMessageBox("胜利者: " + response.getWinner(), "游戏结束");
+            String message = String.format("%s\n胜利者: %s!\n是否返回?", response.getMessage(), response.getWinner());
+            int result = view.showConfirmDialog(message, "游戏结束");
+            if (result == JOptionPane.YES_OPTION) {
+                view.dispose();
+                onBack.run();
+            }
         });
     }
 
@@ -214,11 +213,16 @@ public class ChessViewController {
             pieceJustEaten = selectedPiece;
 
             sendMoveRequest(from, point);
-            appendLog(piece, from, point);
+            addRecord(piece, from, point);
             leaveMyTurn();
         } else {
             chessModel.unselect();
         }
+    }
+
+    private void addRecord(Piece piece, ChessBoardPoint from, ChessBoardPoint to) {
+        ChessRecord record = chessRecorder.add(piece, from, to);
+        view.getLogListModel().addElement(record);
     }
 
     private void handleRetractButtonClicked(ActionEvent e) {
@@ -299,63 +303,5 @@ public class ChessViewController {
         request.setTo(to);
 
         receiver.send(request);
-    }
-
-    private void appendLog(Piece piece, ChessBoardPoint from, ChessBoardPoint to) {
-        StringBuilder result = new StringBuilder();
-        result.append(piece.getSymbol());
-
-        int startX, endX;
-
-        if (piece.isRed()) {
-            startX = chessModel.getLogic().getBoardWidth() - from.getX();
-            endX = chessModel.getLogic().getBoardWidth() - to.getX();
-        } else {
-            startX = from.getX() + 1;
-            endX = to.getX() + 1;
-        }
-
-        String startXChinese = piece.isRed() ? convertToChinese(startX) : Integer.toString(startX);
-        String endXChinese = piece.isRed() ? convertToChinese(endX) : Integer.toString(endX);
-
-        int dy = to.getY() - from.getY();
-        if (piece.isRed()) {
-            dy = -dy;
-        }
-
-        String dyChinese = piece.isRed() ? convertToChinese(Math.abs(dy)) : Integer.toString(Math.abs(dy));
-
-        switch (piece) {
-            case RED_GUARD:
-            case BLACK_GUARD:
-            case RED_HORSE:
-            case BLACK_HORSE:
-            case RED_ELEPHANT:
-            case BLACK_ELEPHANT: {
-                assert dy != 0;
-
-                result.append(startXChinese);
-                if (dy > 0) {
-                    result.append("进").append(endXChinese);
-                } else {
-                    result.append("退").append(endXChinese);
-                }
-                break;
-            }
-            default: {
-                result.append(startXChinese);
-
-                if (dy > 0) {
-                    result.append("进").append(dyChinese);
-                } else if (dy < 0) {
-                    result.append("退").append(dyChinese);
-                } else {
-                    result.append("平").append(endXChinese);
-                }
-                break;
-            }
-        }
-
-        view.appendToLog(result.toString());
     }
 }

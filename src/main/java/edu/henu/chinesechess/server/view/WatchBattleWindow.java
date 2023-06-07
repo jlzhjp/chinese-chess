@@ -1,7 +1,7 @@
 package edu.henu.chinesechess.server.view;
 
-import edu.henu.chinesechess.common.view.ChessPanel;
 import edu.henu.chinesechess.common.view.AppWindow;
+import edu.henu.chinesechess.common.view.ChessPanel;
 
 import javax.swing.*;
 import java.awt.*;

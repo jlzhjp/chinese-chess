@@ -1,8 +1,8 @@
 package edu.henu.chinesechess.server.model;
 
 import edu.henu.chinesechess.common.GameStatus;
-import edu.henu.chinesechess.common.model.ChessPanelModel;
 import edu.henu.chinesechess.common.SocketMessageReceiver;
+import edu.henu.chinesechess.common.model.ChessPanelModel;
 
 public class GameTable {
     private int row;

@@ -1,11 +1,11 @@
 package edu.henu.chinesechess.client.controller;
 
 import edu.henu.chinesechess.client.model.GameInfo;
-import edu.henu.chinesechess.common.messages.response.StartGameResponse;
 import edu.henu.chinesechess.client.view.ChessWindow;
 import edu.henu.chinesechess.client.view.WaitingWindow;
 import edu.henu.chinesechess.common.MessageListener;
 import edu.henu.chinesechess.common.SocketMessageReceiver;
+import edu.henu.chinesechess.common.messages.response.StartGameResponse;
 
 import javax.swing.*;
 
@@ -14,12 +14,14 @@ public class WaitingViewController {
     private final String selfUserName;
     private final String roomID;
     private final SocketMessageReceiver receiver;
+    private final Runnable onBack;
 
-    public WaitingViewController(SocketMessageReceiver receiver, WaitingWindow view, String userName, String roomID) {
+    public WaitingViewController(SocketMessageReceiver receiver, WaitingWindow view, String userName, String roomID, Runnable onBack) {
         this.view = view;
         this.selfUserName = userName;
         this.roomID = roomID;
         this.receiver = receiver;
+        this.onBack = onBack;
 
         SwingUtilities.invokeLater(() -> {
             view.getUserNameValueLabel().setText(userName);
@@ -36,16 +38,15 @@ public class WaitingViewController {
             view.dispose();
 
             ChessWindow chessWindow = new ChessWindow();
-
             GameInfo info = new GameInfo();
 
+            chessWindow.show();
             info.setRoomID(roomID);
             info.setUserName(selfUserName);
             info.setBlackPlayer(response.getBlackPlayerName());
             info.setRedPlayer(response.getRedPlayerName());
 
-            ChessViewController controller = new ChessViewController(chessWindow, info, receiver);
-            chessWindow.show();
+            ChessViewController controller = new ChessViewController(chessWindow, info, receiver, onBack);
         });
     }
 }
