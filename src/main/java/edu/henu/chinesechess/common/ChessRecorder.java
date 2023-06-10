@@ -130,11 +130,10 @@ public class ChessRecorder {
             JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
             ChessRecord record = (ChessRecord) value;
             label.setFont(defaultFont);
-            label.setForeground(Color.white);
             if (record.getPiece().isRed()) {
-                label.setBackground(new Color(179, 19, 18));
+                label.setForeground(new Color(179, 19, 18));
             } else {
-                label.setBackground(new Color(43, 42, 76));
+                label.setForeground(new Color(43, 42, 76));
             }
             return label;
         }

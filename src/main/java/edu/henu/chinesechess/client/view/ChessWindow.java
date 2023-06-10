@@ -12,10 +12,10 @@ import javax.swing.border.TitledBorder;
 import java.awt.*;
 
 public class ChessWindow extends AppWindow {
+    private final DefaultListModel<ChessRecord> logListModel = new DefaultListModel<>();
     private ChessPanel chessPanel;
     private JScrollPane logScrollWrapper;
     private JList<ChessRecord> logList;
-    private DefaultListModel<ChessRecord> logListModel = new DefaultListModel<>();
     private JPanel logWrapper;
     private JPanel userInfoWrapper;
     private JLabel lblRed;

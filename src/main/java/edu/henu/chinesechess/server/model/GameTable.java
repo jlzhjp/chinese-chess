@@ -1,7 +1,7 @@
 package edu.henu.chinesechess.server.model;
 
 import edu.henu.chinesechess.common.GameStatus;
-import edu.henu.chinesechess.common.SocketMessageReceiver;
+import edu.henu.chinesechess.common.MessageSink;
 import edu.henu.chinesechess.common.model.ChessPanelModel;
 
 public class GameTable {
@@ -10,9 +10,9 @@ public class GameTable {
 
     private String blackPlayer;
 
-    private SocketMessageReceiver redPlayerReceiver;
+    private MessageSink redPlayerMessageSink;
 
-    private SocketMessageReceiver blackPlayerReceiver;
+    private MessageSink blackPlayerMessageSink;
 
     private GameStatus status;
 
@@ -34,20 +34,20 @@ public class GameTable {
         this.blackPlayer = blackPlayer;
     }
 
-    public SocketMessageReceiver getRedPlayerReceiver() {
-        return redPlayerReceiver;
+    public MessageSink getRedPlayerMessageSink() {
+        return redPlayerMessageSink;
     }
 
-    public void setRedPlayerReceiver(SocketMessageReceiver redPlayerReceiver) {
-        this.redPlayerReceiver = redPlayerReceiver;
+    public void setRedPlayerMessageSink(MessageSink redPlayerMessageSink) {
+        this.redPlayerMessageSink = redPlayerMessageSink;
     }
 
-    public SocketMessageReceiver getBlackPlayerReceiver() {
-        return blackPlayerReceiver;
+    public MessageSink getBlackPlayerMessageSink() {
+        return blackPlayerMessageSink;
     }
 
-    public void setBlackPlayerReceiver(SocketMessageReceiver blackPlayerReceiver) {
-        this.blackPlayerReceiver = blackPlayerReceiver;
+    public void setBlackPlayerMessageSink(MessageSink blackPlayerMessageSink) {
+        this.blackPlayerMessageSink = blackPlayerMessageSink;
     }
 
     public int getRow() {

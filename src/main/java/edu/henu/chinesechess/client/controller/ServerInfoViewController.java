@@ -2,17 +2,18 @@ package edu.henu.chinesechess.client.controller;
 
 import edu.henu.chinesechess.client.view.LoginWindow;
 import edu.henu.chinesechess.client.view.ServerInfoWindow;
-import edu.henu.chinesechess.common.SocketMessageReceiver;
+import edu.henu.chinesechess.common.MessageSocketManager;
+import edu.henu.chinesechess.common.socketManager.SocketManager;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
-import java.io.IOException;
-import java.net.Socket;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 public class ServerInfoViewController {
     ServerInfoWindow view;
 
-    SocketMessageReceiver receiver;
+    MessageSocketManager socketManager;
 
     public ServerInfoViewController(ServerInfoWindow view) {
         this.view = view;
@@ -23,32 +24,36 @@ public class ServerInfoViewController {
         String serverIPAddress = view.getServerIPAddressTextField().getText();
         String portString = view.getPortTextField().getText();
 
+        InetAddress serverInetAddress;
         int port;
 
         try {
             port = Integer.parseInt(portString);
+            serverInetAddress = InetAddress.getByName(serverIPAddress);
         } catch (NumberFormatException ex) {
             SwingUtilities.invokeLater(() -> view.showErrorMessageBox("端口号必须是一个整数", "连接失败"));
             return;
-        }
-
-        try {
-            Socket socket = new Socket(serverIPAddress, port);
-            receiver = new SocketMessageReceiver(socket);
-            receiver.listen();
-        } catch (IOException ex) {
-            SwingUtilities.invokeLater(() -> view.showErrorMessageBox(ex.getMessage(), "连接失败"));
+        } catch (UnknownHostException ex) {
+            SwingUtilities.invokeLater(() -> view.showErrorMessageBox("无法解析服务器地址", "连接失败"));
             return;
         }
 
-        SwingUtilities.invokeLater(() -> {
-            view.close();
-            view.dispose();
+        socketManager = new MessageSocketManager(SocketManager.connect(serverInetAddress, port));
+        socketManager.setErrorHandler((ex) -> SwingUtilities.invokeLater(() -> view.showErrorMessageBox(ex.getMessage(), "错误")));
+        try {
+            socketManager.start();
 
-            LoginWindow loginWindow = new LoginWindow();
-            LoginViewController loginViewController = new LoginViewController(loginWindow, receiver);
+            SwingUtilities.invokeLater(() -> {
+                view.close();
+                view.dispose();
 
-            loginWindow.show();
-        });
+                LoginWindow loginWindow = new LoginWindow();
+                LoginViewController loginViewController = new LoginViewController(loginWindow, socketManager);
+
+                loginWindow.show();
+            });
+        } catch (Exception ex) {
+            SwingUtilities.invokeLater(() -> view.showErrorMessageBox(ex.getMessage(), "连接失败"));
+        }
     }
 }

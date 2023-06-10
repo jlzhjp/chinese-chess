@@ -17,6 +17,7 @@ public class ServerWindow extends AppWindow {
     private JTextField txtPort;
     private JButton btnStart;
     private JButton btnStop;
+    private JCheckBox chkUseNIO;
 
     /**
      * Create the application.
@@ -46,14 +47,14 @@ public class ServerWindow extends AppWindow {
      */
     private void initialize() {
         getFrame().setTitle("中国象棋服务器");
-        getFrame().setBounds(100, 100, 392, 450);
+        getFrame().setBounds(100, 100, 442, 450);
         getFrame().setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         getFrame().getContentPane().setLayout(null);
         getFrame().setResizable(false);
 
         configWrapper = new JPanel();
         configWrapper.setBorder(new TitledBorder(null, "配置", TitledBorder.LEADING, TitledBorder.TOP, getDefaultFont(), null));
-        configWrapper.setBounds(10, 11, 360, 57);
+        configWrapper.setBounds(10, 11, 410, 57);
         getFrame().getContentPane().add(configWrapper);
         configWrapper.setLayout(null);
 
@@ -69,18 +70,23 @@ public class ServerWindow extends AppWindow {
         configWrapper.add(txtPort);
         txtPort.setColumns(10);
 
+        chkUseNIO = new JCheckBox("NIO");
+        chkUseNIO.setBounds(169, 21, 67, 23);
+        makeDefaultFont(chkUseNIO);
+        configWrapper.add(chkUseNIO);
+
         btnStart = new JButton("启动");
         makeDefaultFont(btnStart);
-        btnStart.setBounds(173, 21, 74, 23);
+        btnStart.setBounds(242, 21, 74, 23);
         configWrapper.add(btnStart);
 
         btnStop = new JButton("关闭");
         makeDefaultFont(btnStop);
-        btnStop.setBounds(261, 21, 74, 23);
+        btnStop.setBounds(326, 21, 74, 23);
         configWrapper.add(btnStop);
 
         scrollPane = new JScrollPane();
-        scrollPane.setBounds(10, 79, 360, 325);
+        scrollPane.setBounds(10, 79, 410, 325);
         getFrame().getContentPane().add(scrollPane);
 
         tblGameTables = new JTable() {
@@ -112,6 +118,9 @@ public class ServerWindow extends AppWindow {
 
     public JTextField getPortTextField() {
         return txtPort;
+    }
+    public JCheckBox getUseNIOCheckBox() {
+        return chkUseNIO;
     }
 
     public JTable getTable() {

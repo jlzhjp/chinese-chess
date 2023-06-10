@@ -232,12 +232,12 @@ public class ChessLogicImpl implements ChessLogic {
         int y = point.getY();
 
         if (isRed) {
-            upper_limit = 4;
-            lower_limit = 0;
-            dy = -1;
-        } else {
             upper_limit = 9;
             lower_limit = 5;
+            dy = -1;
+        } else {
+            upper_limit = 4;
+            lower_limit = 0;
             dy = 1;
         }
 

@@ -4,8 +4,10 @@ import edu.henu.chinesechess.client.model.GameInfo;
 import edu.henu.chinesechess.client.view.ChessWindow;
 import edu.henu.chinesechess.client.view.LoginWindow;
 import edu.henu.chinesechess.client.view.WaitingWindow;
+import edu.henu.chinesechess.common.DefaultErrorHandler;
 import edu.henu.chinesechess.common.MessageListener;
-import edu.henu.chinesechess.common.SocketMessageReceiver;
+import edu.henu.chinesechess.common.MessageSink;
+import edu.henu.chinesechess.common.MessageSocketManager;
 import edu.henu.chinesechess.common.messages.request.CreateRoomRequest;
 import edu.henu.chinesechess.common.messages.request.JoinRoomRequest;
 import edu.henu.chinesechess.common.messages.response.CreateRoomResponse;
@@ -18,24 +20,34 @@ import java.util.Objects;
 
 public class LoginViewController {
     private final LoginWindow view;
-    private final SocketMessageReceiver receiver;
+    private final MessageSocketManager socketManager;
+    private final MessageSink sink;
     private String roomID;
     private boolean isRoomCreator;
 
-    public LoginViewController(LoginWindow view, SocketMessageReceiver receiver) {
+    public LoginViewController(LoginWindow view, MessageSocketManager socketManager) {
         this.view = view;
-        this.receiver = receiver;
+        this.socketManager = socketManager;
+        this.sink = socketManager.getSinkFromConnected();
 
-        view.getIPAddressTextField().setText(receiver.getIPAddress());
-        view.getPortTextField().setText(Integer.toString(receiver.getPort()));
+        view.getIPAddressTextField().setText(socketManager.getIPAddress().getHostAddress());
+        view.getPortTextField().setText(Integer.toString(socketManager.getPort()));
 
         view.getCreateRoomButton().addActionListener(this::handleCreateRoomButtonClicked);
         view.getJoinRoomButton().addActionListener(this::handleJoinRoomButtonClicked);
+        registerListeners();
+    }
 
-        receiver.setListener(new MessageListener()
+    private void registerListeners() {
+        socketManager.setErrorHandler((e) -> {
+            view.showErrorMessageBox(e.getMessage(), "连接失败");
+        });
+
+        socketManager.setMessageListener(new MessageListener()
                 .on(CreateRoomResponse.class, this::handleCreateRoomResponse)
                 .on(JoinRoomResponse.class, this::handleJoinRoomResponse)
                 .on(StartGameResponse.class, this::handleStartGameResponse));
+        socketManager.setErrorHandler(new DefaultErrorHandler(view));
     }
 
     private void handleJoinRoomButtonClicked(ActionEvent e) {
@@ -57,7 +69,7 @@ public class LoginViewController {
         this.roomID = roomID;
         request.setRoomID(roomID);
         request.setUserName(userName);
-        receiver.send(request);
+        sink.add(request);
     }
 
     private void handleCreateRoomButtonClicked(ActionEvent e) {
@@ -70,10 +82,10 @@ public class LoginViewController {
         }
 
         CreateRoomRequest request = new CreateRoomRequest();
-        receiver.send(request);
+        sink.add(request);
     }
 
-    private void handleCreateRoomResponse(CreateRoomResponse response) {
+    private void handleCreateRoomResponse(CreateRoomResponse response, MessageSink sink) {
         roomID = response.getRoomID();
         String userName = view.getUserNameTextField().getText();
 
@@ -82,7 +94,7 @@ public class LoginViewController {
                 JoinRoomRequest request = new JoinRoomRequest();
                 request.setRoomID(response.getRoomID());
                 request.setUserName(userName);
-                receiver.send(request);
+                sink.add(request);
                 break;
             }
             case ERROR: {
@@ -92,7 +104,7 @@ public class LoginViewController {
         }
     }
 
-    private void handleStartGameResponse(StartGameResponse response) {
+    private void handleStartGameResponse(StartGameResponse response, MessageSink sink) {
         String userName = view.getUserNameTextField().getText();
         SwingUtilities.invokeLater(() -> {
             view.close();
@@ -106,14 +118,14 @@ public class LoginViewController {
             info.setBlackPlayer(response.getBlackPlayerName());
             info.setRedPlayer(response.getRedPlayerName());
 
-            ChessViewController controller = new ChessViewController(chessWindow, info, receiver, () -> {
+            ChessViewController controller = new ChessViewController(chessWindow, info, socketManager, () -> {
                 SwingUtilities.invokeLater(view::show);
             });
             chessWindow.show();
         });
     }
 
-    private void handleJoinRoomResponse(JoinRoomResponse response) {
+    private void handleJoinRoomResponse(JoinRoomResponse response, MessageSink sink) {
         switch (response.getResult()) {
             case SUCCESS: {
                 if (isRoomCreator) {
@@ -123,7 +135,16 @@ public class LoginViewController {
                         String userName = view.getUserNameTextField().getText();
                         // show waiting window
                         WaitingWindow waitingWindow = new WaitingWindow();
-                        WaitingViewController waitingViewController = new WaitingViewController(receiver, waitingWindow, userName, roomID, view::show);
+                        WaitingViewController waitingViewController = new WaitingViewControllerBuilder()
+                                .setView(waitingWindow)
+                                .setUserName(userName)
+                                .setRoomID(roomID)
+                                .setSocketManager(socketManager)
+                                .setOnBack(() -> {
+                                    view.show();
+                                    registerListeners();
+                                })
+                                .build();
                         waitingWindow.show();
                     });
                 }

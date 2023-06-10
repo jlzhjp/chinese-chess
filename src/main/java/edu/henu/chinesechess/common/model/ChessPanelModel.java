@@ -109,6 +109,9 @@ public class ChessPanelModel extends Model {
 
     public void move(ChessBoardPoint from, ChessBoardPoint to) {
         Piece piece = pieces.get(from);
+        if (piece == null) {
+            throw new IllegalArgumentException("No piece at " + from);
+        }
         pieces.remove(from);
         pieces.put(to, piece);
         raisePropertyChange("pieces", null, pieces);

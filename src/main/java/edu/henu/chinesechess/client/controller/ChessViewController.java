@@ -2,9 +2,7 @@ package edu.henu.chinesechess.client.controller;
 
 import edu.henu.chinesechess.client.model.GameInfo;
 import edu.henu.chinesechess.client.view.ChessWindow;
-import edu.henu.chinesechess.common.ChessRecorder;
-import edu.henu.chinesechess.common.MessageListener;
-import edu.henu.chinesechess.common.SocketMessageReceiver;
+import edu.henu.chinesechess.common.*;
 import edu.henu.chinesechess.common.messages.Result;
 import edu.henu.chinesechess.common.messages.request.AdmitDefeatRequest;
 import edu.henu.chinesechess.common.messages.request.MovePieceRequest;
@@ -44,8 +42,10 @@ public class ChessViewController {
     private final ChessPanelModel chessModel;
     private final ChessWindow view;
     private final GameInfo gameInfo;
-    private final SocketMessageReceiver receiver;
     private final ChessRecorder chessRecorder;
+    private final Runnable onBack;
+    private final MessageSink sink;
+    MessageSocketManager socketManager;
     private Timer timer;
     private int remainingTime = 60;
     private boolean canMove;
@@ -53,14 +53,15 @@ public class ChessViewController {
     private ChessBoardPoint lastMoveFrom;
     private ChessBoardPoint lastMoveTo;
     private Piece pieceJustEaten;
-    private final Runnable onBack;
 
-    public ChessViewController(ChessWindow view, GameInfo gameInfo, SocketMessageReceiver receiver, Runnable onBack) {
+
+    public ChessViewController(ChessWindow view, GameInfo gameInfo, MessageSocketManager socketManager, Runnable onBack) {
         this.view = view;
         this.chessModel = ChessPanelModel.initial(gameInfo.isRed());
         this.gameInfo = gameInfo;
-        this.receiver = receiver;
         this.onBack = onBack;
+        this.sink = socketManager.getSinkFromConnected();
+        this.socketManager = socketManager;
 
         chessRecorder = new ChessRecorder(chessModel.getLogic().getBoardWidth(), chessModel.getLogic().getBoardHeight());
 
@@ -68,7 +69,7 @@ public class ChessViewController {
             SwingUtilities.invokeLater(() -> view.getRemainingTimeLabel().setText(Integer.toString(remainingTime)));
             --remainingTime;
             if (remainingTime < 0) {
-                sendAdmitDefeatRequest();
+                sendAdmitDefeatRequest(sink);
                 timer.stop();
             }
         });
@@ -92,7 +93,7 @@ public class ChessViewController {
             @Override
             public void windowClosing(java.awt.event.WindowEvent windowEvent) {
                 if (!isGameOver) {
-                    sendAdmitDefeatRequest();
+                    sendAdmitDefeatRequest(sink);
                 }
                 onBack.run();
             }
@@ -109,10 +110,11 @@ public class ChessViewController {
                 .on(RetractResponse.class, this::handleRetractResponse)
                 .on(GameOverResponse.class, this::handleGameOverResponse);
 
-        receiver.setListener(listener);
+        socketManager.setMessageListener(listener);
+        socketManager.setErrorHandler(new DefaultErrorHandler(view));
     }
 
-    private void handleMovePieceResponse(MovePieceResponse response) {
+    private void handleMovePieceResponse(MovePieceResponse response, MessageSink sink) {
         if (response.getResult() != Result.SUCCESS) {
             return;
         }
@@ -175,11 +177,11 @@ public class ChessViewController {
         return false;
     }
 
-    private void handleGameOverResponse(GameOverResponse response) {
+    private void handleGameOverResponse(GameOverResponse response, MessageSink sink) {
         leaveMyTurn();
         view.getRetractButton().setEnabled(false);
-        receiver.close();
         isGameOver = true;
+
         SwingUtilities.invokeLater(() -> {
             String message = String.format("%s\n胜利者: %s!\n是否返回?", response.getMessage(), response.getWinner());
             int result = view.showConfirmDialog(message, "游戏结束");
@@ -212,7 +214,7 @@ public class ChessViewController {
             lastMoveTo = point;
             pieceJustEaten = selectedPiece;
 
-            sendMoveRequest(from, point);
+            sendMoveRequest(sink, from, point);
             addRecord(piece, from, point);
             leaveMyTurn();
         } else {
@@ -226,11 +228,11 @@ public class ChessViewController {
     }
 
     private void handleRetractButtonClicked(ActionEvent e) {
-        sendRetractRequest();
+        sendRetractRequest(sink);
         view.getRetractButton().setEnabled(false);
     }
 
-    private void handleRetractResponse(RetractResponse response) {
+    private void handleRetractResponse(RetractResponse response, MessageSink sink) {
         if (canMove) {
             // 在自己的回合收到悔棋的响应，对方发送的悔棋请求
             RetractReplyRequest request = new RetractReplyRequest();
@@ -250,7 +252,7 @@ public class ChessViewController {
                     chessModel.put(response.getFrom(), response.getPieceJustEaten());
                 }
             }
-            receiver.send(request);
+            sink.add(request);
         } else {
             // 自己发送的悔棋请求
             if (response.getResult() != Result.SUCCESS) {
@@ -273,28 +275,28 @@ public class ChessViewController {
     private void handleAdmitDefeatButtonClicked(ActionEvent e) {
         int result = view.showConfirmDialog("确定认输吗?", "认输");
         if (result == JOptionPane.YES_OPTION) {
-            sendAdmitDefeatRequest();
+            sendAdmitDefeatRequest(sink);
         }
     }
 
-    private void sendRetractRequest() {
+    private void sendRetractRequest(MessageSink sink) {
         RetractRequest request = new RetractRequest();
         request.setRoomID(gameInfo.getRoomID());
         request.setUserName(gameInfo.getUserName());
         request.setFrom(lastMoveTo);
         request.setTo(lastMoveFrom);
         request.setPieceJustEaten(pieceJustEaten);
-        receiver.send(request);
+        sink.add(request);
     }
 
-    private void sendAdmitDefeatRequest() {
+    private void sendAdmitDefeatRequest(MessageSink sink) {
         AdmitDefeatRequest request = new AdmitDefeatRequest();
         request.setRoomID(gameInfo.getRoomID());
         request.setUserName(gameInfo.getUserName());
-        receiver.send(request);
+        sink.add(request);
     }
 
-    private void sendMoveRequest(ChessBoardPoint from, ChessBoardPoint to) {
+    private void sendMoveRequest(MessageSink sink, ChessBoardPoint from, ChessBoardPoint to) {
         MovePieceRequest request = new MovePieceRequest();
 
         request.setRoomID(gameInfo.getRoomID());
@@ -302,6 +304,6 @@ public class ChessViewController {
         request.setFrom(from);
         request.setTo(to);
 
-        receiver.send(request);
+        sink.add(request);
     }
 }

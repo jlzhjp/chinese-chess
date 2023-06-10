@@ -1,14 +1,13 @@
 package edu.henu.chinesechess.server.controller;
 
-import edu.henu.chinesechess.common.GameStatus;
-import edu.henu.chinesechess.common.MessageListener;
-import edu.henu.chinesechess.common.SocketMessageReceiver;
+import edu.henu.chinesechess.common.*;
 import edu.henu.chinesechess.common.messages.Message;
 import edu.henu.chinesechess.common.messages.Result;
 import edu.henu.chinesechess.common.messages.request.*;
 import edu.henu.chinesechess.common.messages.response.*;
 import edu.henu.chinesechess.common.model.ChessPanelModel;
 import edu.henu.chinesechess.common.model.Piece;
+import edu.henu.chinesechess.common.socketManager.SocketManager;
 import edu.henu.chinesechess.server.model.GameTable;
 import edu.henu.chinesechess.server.view.ServerWindow;
 import edu.henu.chinesechess.server.view.WatchBattleWindow;
@@ -18,9 +17,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Objects;
@@ -32,7 +29,7 @@ public class ServerViewController {
     Random random = new Random();
     HashMap<String, GameTable> gameTables = new HashMap<>();
     ServerWindow view;
-    ServerSocket serverSocket;
+    MessageSocketManager messageSocketManager;
 
     public ServerViewController(ServerWindow view) {
         this.view = view;
@@ -62,35 +59,31 @@ public class ServerViewController {
     private void handleStartButtonClicked(ActionEvent e) {
         view.getStartButton().setEnabled(false);
         view.getStopButton().setEnabled(true);
+        view.getUseNIOCheckBox().setEnabled(false);
+
         int port = Integer.parseInt(view.getPortTextField().getText());
+
+        MessageListener listener = new MessageListener()
+                .on(CreateRoomRequest.class, this::handleCreateRoomRequest)
+                .on(JoinRoomRequest.class, this::handleJoinRoomRequest)
+                .on(MovePieceRequest.class, (message, sink) -> handleMovePieceRequest(message))
+                .on(AdmitDefeatRequest.class, (message, sink) -> handleAdmitDefeatRequest(message))
+                .on(RetractRequest.class, (message, sink) -> handleRetractRequest(message))
+                .on(RetractReplyRequest.class, (message, sink) -> handleRetractReplyRequest(message));
+
+        SocketManager socketManager = SocketManager.listen(port, view.getUseNIOCheckBox().isSelected());
+
+        messageSocketManager = new MessageSocketManager(socketManager);
+        messageSocketManager.setMessageListener(listener);
+        messageSocketManager.setErrorHandler(new DefaultErrorHandler(view));
+
         try {
-            serverSocket = new ServerSocket(port);
-        } catch (IOException ex) {
-            view.showErrorMessageBox("端口被占用", "错误");
-            return;
+            messageSocketManager.start();
+        } catch (Exception Exception) {
+            SwingUtilities.invokeLater(() -> {
+                view.showErrorMessageBox(Exception.getMessage(), "启动失败");
+            });
         }
-
-        new Thread(() -> {
-            while (true) {
-                try {
-                    Socket socket = serverSocket.accept();
-                    SocketMessageReceiver receiver = new SocketMessageReceiver(socket);
-                    MessageListener listener = new MessageListener()
-                            .on(CreateRoomRequest.class, (request) -> handleCreateRoomRequest(receiver, request))
-                            .on(JoinRoomRequest.class, (request) -> handleJoinRoomRequest(receiver, request))
-                            .on(MovePieceRequest.class, this::handleMovePieceRequest)
-                            .on(AdmitDefeatRequest.class, this::handleAdmitDefeatRequest)
-                            .on(RetractRequest.class, this::handleRetractRequest)
-                            .on(RetractReplyRequest.class, this::handleRetractReplyRequest);
-
-                    receiver.setListener(listener);
-                    receiver.listen();
-                } catch (IOException ex) {
-                    view.showErrorMessageBox(ex.getMessage(), "错误");
-                    break;
-                }
-            }
-        }).start();
     }
 
     private void handleRetractRequest(RetractRequest request) {
@@ -134,7 +127,7 @@ public class ServerViewController {
         sendToAnother(gameTable, request.getUserName(), response);
     }
 
-    private void handleCreateRoomRequest(SocketMessageReceiver receiver, CreateRoomRequest request) {
+    private void handleCreateRoomRequest(CreateRoomRequest request, MessageSink sink) {
         String roomID = generateRandomRoomID();
         CreateRoomResponse response = new CreateRoomResponse();
         response.setRoomID(roomID);
@@ -145,38 +138,38 @@ public class ServerViewController {
         table.setStatus(GameStatus.WAITING_FOR_PLAYER);
         gameTables.put(roomID, table);
         view.getTableModel().addRow(new Object[]{roomID, "", "", "等待中"});
-        receiver.send(response);
+        sink.add(response);
     }
 
-    private void handleJoinRoomRequest(SocketMessageReceiver receiver, JoinRoomRequest request) {
+    private void handleJoinRoomRequest(JoinRoomRequest request, MessageSink sink) {
         GameTable table = gameTables.get(request.getRoomID());
         if (Objects.isNull(table)) {
             JoinRoomResponse response = new JoinRoomResponse();
             response.setResult(Result.ERROR);
             response.setMessage("房间不存在");
-            receiver.send(response);
+            sink.add(response);
             return;
         }
 
         if (Objects.isNull(table.getRedPlayer())) {
             table.setRedPlayer(request.getUserName());
-            table.setRedPlayerReceiver(receiver);
+            table.setRedPlayerMessageSink(sink);
             JoinRoomResponse response = new JoinRoomResponse();
             response.setResult(Result.SUCCESS);
             view.getTableModel().setValueAt(request.getUserName(), table.getRow(), 1);
-            receiver.send(response);
+            sink.add(response);
         } else if (Objects.isNull(table.getBlackPlayer())) {
             table.setBlackPlayer(request.getUserName());
-            table.setBlackPlayerReceiver(receiver);
+            table.setBlackPlayerMessageSink(sink);
             JoinRoomResponse response = new JoinRoomResponse();
             response.setResult(Result.SUCCESS);
             view.getTableModel().setValueAt(request.getUserName(), table.getRow(), 2);
-            receiver.send(response);
+            sink.add(response);
         } else {
             JoinRoomResponse response = new JoinRoomResponse();
             response.setResult(Result.ERROR);
             response.setMessage("房间已满");
-            receiver.send(response);
+            sink.add(response);
         }
 
         if (Objects.nonNull(table.getRedPlayer()) && Objects.nonNull(table.getBlackPlayer())) {
@@ -185,8 +178,8 @@ public class ServerViewController {
             response.setBlackPlayerName(table.getBlackPlayer());
             response.setResult(Result.SUCCESS);
 
-            table.getRedPlayerReceiver().send(response);
-            table.getBlackPlayerReceiver().send(response);
+            table.getRedPlayerMessageSink().add(response);
+            table.getBlackPlayerMessageSink().add(response);
 
             setGameStatus(table, "游戏中");
             table.setStatus(GameStatus.PLAYING);
@@ -250,16 +243,20 @@ public class ServerViewController {
         GameOverResponse gameOverResponse = new GameOverResponse();
         gameOverResponse.setWinner(winner);
         gameOverResponse.setMessage(message);
-        table.getRedPlayerReceiver().send(gameOverResponse);
-        table.getBlackPlayerReceiver().send(gameOverResponse);
+        table.getRedPlayerMessageSink().add(gameOverResponse);
+        table.getBlackPlayerMessageSink().add(gameOverResponse);
     }
 
     private void handleStopButtonClicked(ActionEvent e) {
         view.getStartButton().setEnabled(true);
         view.getStopButton().setEnabled(false);
+        view.getUseNIOCheckBox().setEnabled(true);
+
         try {
-            serverSocket.close();
-        } catch (IOException ignored) {
+            if (messageSocketManager != null) {
+                messageSocketManager.close();
+            }
+        } catch (Exception ignored) {
         }
     }
 
@@ -289,9 +286,9 @@ public class ServerViewController {
 
     private void sendToAnother(GameTable gameTable, String currentUserName, Message message) {
         if (Objects.equals(currentUserName, gameTable.getRedPlayer())) {
-            gameTable.getBlackPlayerReceiver().send(message);
+            gameTable.getBlackPlayerMessageSink().add(message);
         } else if (Objects.equals(currentUserName, gameTable.getBlackPlayer())) {
-            gameTable.getRedPlayerReceiver().send(message);
+            gameTable.getRedPlayerMessageSink().add(message);
         }
     }
 }
