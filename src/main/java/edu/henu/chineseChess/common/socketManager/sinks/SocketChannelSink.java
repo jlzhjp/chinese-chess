@@ -20,7 +20,7 @@ public class SocketChannelSink implements Sink {
 
     @Override
     public void println(String message) {
-        ByteBuffer buffer = ByteBuffer.wrap((message + "\n").getBytes(StandardCharsets.UTF_8));
+        ByteBuffer buffer = ByteBuffer.wrap((message + "\n").getBytes());
         try {
             socketChannel.write(buffer);
         } catch (Exception e) {

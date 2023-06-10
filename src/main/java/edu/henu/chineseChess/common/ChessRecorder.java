@@ -131,9 +131,17 @@ public class ChessRecorder {
             ChessRecord record = (ChessRecord) value;
             label.setFont(defaultFont);
             if (record.getPiece().isRed()) {
-                label.setForeground(new Color(179, 19, 18));
+                if (Singletons.isDarkMode) {
+                    label.setForeground(new Color(240, 84, 84));
+                } else {
+                    label.setForeground(new Color(179, 19, 18));
+                }
             } else {
-                label.setForeground(new Color(43, 42, 76));
+                if (Singletons.isDarkMode) {
+                    label.setForeground(new Color(245, 245, 245));
+                } else {
+                    label.setForeground(new Color(43, 42, 76));
+                }
             }
             return label;
         }

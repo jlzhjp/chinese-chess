@@ -80,13 +80,16 @@ public class ChessViewController {
         }
 
 
-        view.getRedPlayerLabel().setText("红方: " + gameInfo.getRedPlayer());
-        view.getBlackPlayerLabel().setText("黑方: " + gameInfo.getBlackPlayer());
-
         if (Objects.equals(gameInfo.getUserName(), gameInfo.getRedPlayer())) {
-            view.getRedPlayerLabel().setForeground(Color.RED);
+            view.getRedPlayerLabel().setText("红方: " + gameInfo.getRedPlayer() + "(*)");
+            view.getBlackPlayerLabel().setText("黑方: " + gameInfo.getBlackPlayer());
+
+            view.getRedPlayerLabel().setFont(view.getDefaultBoldFont());
         } else {
-            view.getBlackPlayerLabel().setForeground(Color.RED);
+            view.getRedPlayerLabel().setText("红方: " + gameInfo.getRedPlayer());
+            view.getBlackPlayerLabel().setText("黑方: " + gameInfo.getBlackPlayer() + "(*)");
+
+            view.getBlackPlayerLabel().setFont(view.getDefaultBoldFont());
         }
 
         view.getWindow().addWindowListener(new java.awt.event.WindowAdapter() {

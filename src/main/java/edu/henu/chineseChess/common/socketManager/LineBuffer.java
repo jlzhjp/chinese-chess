@@ -1,7 +1,6 @@
 package edu.henu.chineseChess.common.socketManager;
 
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -14,7 +13,7 @@ public class LineBuffer implements Iterator<String> {
     public void put(ByteBuffer byteBuffer, int len) {
         byte[] buffer = new byte[len];
         byteBuffer.get(buffer);
-        String result = new String(buffer, StandardCharsets.UTF_8);
+        String result = new String(buffer);
         for (char c : result.toCharArray()) {
             if (c == '\n') {
                 lines.add(lineBuilder.toString());
@@ -23,6 +22,10 @@ public class LineBuffer implements Iterator<String> {
                 lineBuilder.append(c);
             }
         }
+    }
+
+    public void clear() {
+        lineBuilder.setLength(0);
     }
 
     @Override
