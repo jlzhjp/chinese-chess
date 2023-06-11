@@ -119,6 +119,7 @@ public class ServerWindow extends AppWindow {
     public JTextField getPortTextField() {
         return txtPort;
     }
+
     public JCheckBox getUseNIOCheckBox() {
         return chkUseNIO;
     }

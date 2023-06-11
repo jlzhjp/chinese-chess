@@ -13,7 +13,7 @@ public class MessageSocketManager {
 
     public MessageSocketManager(SocketManager socketManager) {
         this.socketManager = socketManager;
-        this.socketManager.setOnMessageListener((line, sink) -> {
+        this.socketManager.setMessageListener((line, sink) -> {
             if (messageListener != null) {
                 Message message = Message.parse(line);
                 messageListener.onMessage(message, new MessageSink(sink));

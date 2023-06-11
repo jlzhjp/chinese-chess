@@ -56,7 +56,7 @@ public class ChessWindow extends AppWindow {
         getFrame().setTitle("中国象棋");
         getFrame().setResizable(false);
         getFrame().setBounds(100, 100, 923, 651);
-        getFrame().setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        getFrame().setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         getFrame().getContentPane().setLayout(null);
 
         chessPanel = new ChessPanel();

@@ -5,8 +5,8 @@ import edu.henu.chineseChess.common.Singletons;
 import java.net.InetAddress;
 
 public abstract class SocketManager implements AutoCloseable {
-    private OnSocketConnectedListener onSocketConnectedListener;
-    private OnSocketMessageListener onSocketMessageListener;
+    private SocketConnectedListener socketConnectedListener;
+    private SocketMessageListener socketMessageListener;
     private ErrorHandler errorHandler;
 
     public static SocketManager connect(InetAddress address, int port) {
@@ -32,12 +32,12 @@ public abstract class SocketManager implements AutoCloseable {
 
     public abstract int getPort();
 
-    public void setOnConnectedListener(OnSocketConnectedListener listener) {
-        this.onSocketConnectedListener = listener;
+    public void setConnectedListener(SocketConnectedListener listener) {
+        this.socketConnectedListener = listener;
     }
 
-    public void setOnMessageListener(OnSocketMessageListener listener) {
-        this.onSocketMessageListener = listener;
+    public void setMessageListener(SocketMessageListener listener) {
+        this.socketMessageListener = listener;
     }
 
     public void setErrorHandler(ErrorHandler errorHandler) {
@@ -45,14 +45,14 @@ public abstract class SocketManager implements AutoCloseable {
     }
 
     protected void executeOnConnected(Sink sink) {
-        if (onSocketConnectedListener != null) {
-            onSocketConnectedListener.onConnected(sink);
+        if (socketConnectedListener != null) {
+            socketConnectedListener.onConnected(sink);
         }
     }
 
     protected void executeOnMessage(String message, Sink sink) {
-        if (onSocketMessageListener != null) {
-            onSocketMessageListener.onMessage(message, sink);
+        if (socketMessageListener != null) {
+            socketMessageListener.onMessage(message, sink);
         }
     }
 
@@ -64,11 +64,11 @@ public abstract class SocketManager implements AutoCloseable {
 
     public abstract void start() throws Exception;
 
-    public interface OnSocketConnectedListener {
+    public interface SocketConnectedListener {
         void onConnected(Sink sink);
     }
 
-    public interface OnSocketMessageListener {
+    public interface SocketMessageListener {
         void onMessage(String message, Sink sink);
     }
 

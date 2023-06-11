@@ -5,7 +5,6 @@ import edu.henu.chineseChess.common.socketManager.sinks.SocketChannelSink;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
 import java.util.Iterator;
@@ -37,42 +36,75 @@ public class MultiSocketManagerNIO extends SocketManager {
             while (selector.isOpen() && serverSocketChannel.isOpen()) {
                 try {
                     selector.select();
-                    Set<SelectionKey> selectionKeys = selector.selectedKeys();
-                    Iterator<SelectionKey> iterator = selectionKeys.iterator();
-                    while (iterator.hasNext()) {
-                        SelectionKey key = iterator.next();
-                        if (key.isAcceptable()) {
-                            SocketChannel socketChannel = serverSocketChannel.accept();
+                } catch (IOException ex) {
+                    catchError(ex);
+                    break;
+                }
+                Set<SelectionKey> selectionKeys = null;
+                try {
+                    selectionKeys = selector.selectedKeys();
+                } catch (ClosedSelectorException ex) {
+                    break;
+                }
+                Iterator<SelectionKey> iterator = selectionKeys.iterator();
+                while (iterator.hasNext()) {
+                    SelectionKey key = iterator.next();
+                    SocketChannel socketChannel = null;
+                    if (key.isAcceptable()) {
+                        try {
+                            socketChannel = serverSocketChannel.accept();
                             socketChannel.configureBlocking(false);
                             socketChannel.register(selector, SelectionKey.OP_READ);
                             executeOnConnected(new SocketChannelSink(socketChannel));
-                        } else if (key.isReadable()) {
-                            LineBuffer lineBuffer;
-                            if (Objects.isNull(key.attachment())) {
-                                lineBuffer = new LineBuffer();
-                                key.attach(lineBuffer);
-                            } else {
-                                lineBuffer = (LineBuffer) key.attachment();
-                            }
-
-                            SocketChannel socketChannel = (SocketChannel) key.channel();
-                            byteBuffer.clear();
-                            int read = socketChannel.read(byteBuffer);
-
-                            if (read > 0) {
-                                byteBuffer.flip();
-                                lineBuffer.put(byteBuffer, read);
-                                while (lineBuffer.hasNext()) {
-                                    String message = lineBuffer.next();
-                                    executeOnMessage(message, new SocketChannelSink(socketChannel));
+                        } catch (IOException ex) {
+                            catchError(ex);
+                            key.cancel();
+                            if (socketChannel != null) {
+                                try {
+                                    socketChannel.close();
+                                } catch (IOException ignored) {
                                 }
                             }
                         }
-                        iterator.remove();
+                    } else if (key.isReadable()) {
+                        LineBuffer lineBuffer;
+                        if (Objects.isNull(key.attachment())) {
+                            lineBuffer = new LineBuffer();
+                            key.attach(lineBuffer);
+                        } else {
+                            lineBuffer = (LineBuffer) key.attachment();
+                        }
+
+                        socketChannel = (SocketChannel) key.channel();
+                        byteBuffer.clear();
+                        int read;
+
+                        try {
+                            read = socketChannel.read(byteBuffer);
+                        } catch (IOException ex) {
+                            catchError(ex);
+                            key.cancel();
+                            try {
+                                socketChannel.close();
+                            } catch (IOException ignored) {
+                            }
+                            iterator.remove();
+                            break;
+                        }
+
+                        if (read < 0) {
+                            iterator.remove();
+                            break;
+                        }
+
+                        byteBuffer.flip();
+                        lineBuffer.put(byteBuffer, read);
+                        while (lineBuffer.hasNext()) {
+                            String message = lineBuffer.next();
+                            executeOnMessage(message, new SocketChannelSink(socketChannel));
+                        }
                     }
-                } catch (ClosedSelectorException | SocketException ignored) {
-                } catch (Exception ex) {
-                    catchError(ex);
+                    iterator.remove();
                 }
             }
         });

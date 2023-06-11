@@ -35,10 +35,6 @@ public class LoginViewController {
 
         view.getCreateRoomButton().addActionListener(this::handleCreateRoomButtonClicked);
         view.getJoinRoomButton().addActionListener(this::handleJoinRoomButtonClicked);
-        registerListeners();
-    }
-
-    private void registerListeners() {
         socketManager.setErrorHandler((e) -> {
             view.showErrorMessageBox(e.getMessage(), "连接失败");
         });
@@ -118,9 +114,7 @@ public class LoginViewController {
             info.setBlackPlayer(response.getBlackPlayerName());
             info.setRedPlayer(response.getRedPlayerName());
 
-            ChessViewController controller = new ChessViewController(chessWindow, info, socketManager, () -> {
-                SwingUtilities.invokeLater(view::show);
-            });
+            ChessViewController controller = new ChessViewController(chessWindow, info, socketManager);
             chessWindow.show();
         });
     }
@@ -140,10 +134,6 @@ public class LoginViewController {
                                 .setUserName(userName)
                                 .setRoomID(roomID)
                                 .setSocketManager(socketManager)
-                                .setOnBack(() -> {
-                                    view.show();
-                                    registerListeners();
-                                })
                                 .build();
                         waitingWindow.show();
                     });

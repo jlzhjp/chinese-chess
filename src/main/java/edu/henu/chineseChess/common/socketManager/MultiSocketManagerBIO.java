@@ -9,7 +9,6 @@ import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketException;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 
@@ -58,16 +57,12 @@ public class MultiSocketManagerBIO extends SocketManager {
                                     executeOnMessage(line, new PrintWriterSink(writer));
                                 }
                             }
-                        } catch (SocketException ignored) {
                         } catch (IOException ex) {
                             catchError(ex);
                         }
                     });
                 }
             } catch (IOException ex) {
-                if (ex.getMessage().equals("Socket closed")) {
-                    return;
-                }
                 catchError(ex);
             }
         });

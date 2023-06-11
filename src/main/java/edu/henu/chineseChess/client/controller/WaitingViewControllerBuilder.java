@@ -8,7 +8,6 @@ public class WaitingViewControllerBuilder {
     private String roomID;
     private WaitingWindow view;
     private MessageSocketManager socketManager;
-    private Runnable onBack;
 
     public WaitingViewControllerBuilder setUserName(String userName) {
         this.userName = userName;
@@ -30,12 +29,7 @@ public class WaitingViewControllerBuilder {
         return this;
     }
 
-    public WaitingViewControllerBuilder setOnBack(Runnable onBack) {
-        this.onBack = onBack;
-        return this;
-    }
-
     public WaitingViewController build() {
-        return new WaitingViewController(socketManager, view, userName, roomID, onBack);
+        return new WaitingViewController(socketManager, view, userName, roomID);
     }
 }

@@ -2,6 +2,7 @@ package edu.henu.chineseChess.client.controller;
 
 import edu.henu.chineseChess.client.model.GameInfo;
 import edu.henu.chineseChess.client.view.ChessWindow;
+import edu.henu.chineseChess.client.view.LoginWindow;
 import edu.henu.chineseChess.common.*;
 import edu.henu.chineseChess.common.messages.Result;
 import edu.henu.chineseChess.common.messages.request.AdmitDefeatRequest;
@@ -17,7 +18,6 @@ import edu.henu.chineseChess.common.model.ChessRecord;
 import edu.henu.chineseChess.common.model.Piece;
 
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.HashSet;
 import java.util.List;
@@ -43,7 +43,6 @@ public class ChessViewController {
     private final ChessWindow view;
     private final GameInfo gameInfo;
     private final ChessRecorder chessRecorder;
-    private final Runnable onBack;
     private final MessageSink sink;
     MessageSocketManager socketManager;
     private Timer timer;
@@ -55,11 +54,10 @@ public class ChessViewController {
     private Piece pieceJustEaten;
 
 
-    public ChessViewController(ChessWindow view, GameInfo gameInfo, MessageSocketManager socketManager, Runnable onBack) {
+    public ChessViewController(ChessWindow view, GameInfo gameInfo, MessageSocketManager socketManager) {
         this.view = view;
         this.chessModel = ChessPanelModel.initial(gameInfo.isRed());
         this.gameInfo = gameInfo;
-        this.onBack = onBack;
         this.sink = socketManager.getSinkFromConnected();
         this.socketManager = socketManager;
 
@@ -98,7 +96,7 @@ public class ChessViewController {
                 if (!isGameOver) {
                     sendAdmitDefeatRequest(sink);
                 }
-                onBack.run();
+                returnToLoginWindow();
             }
         });
         view.getChessPanel().setModel(chessModel);
@@ -189,8 +187,7 @@ public class ChessViewController {
             String message = String.format("%s\n胜利者: %s!\n是否返回?", response.getMessage(), response.getWinner());
             int result = view.showConfirmDialog(message, "游戏结束");
             if (result == JOptionPane.YES_OPTION) {
-                view.dispose();
-                onBack.run();
+                returnToLoginWindow();
             }
         });
     }
@@ -308,5 +305,14 @@ public class ChessViewController {
         request.setTo(to);
 
         sink.add(request);
+    }
+
+    private void returnToLoginWindow() {
+        view.close();
+        view.dispose();
+        LoginWindow loginWindow = new LoginWindow();
+        loginWindow.getUserNameTextField().setText(gameInfo.getUserName());
+        LoginViewController loginViewController = new LoginViewController(loginWindow, socketManager);
+        loginWindow.show();
     }
 }

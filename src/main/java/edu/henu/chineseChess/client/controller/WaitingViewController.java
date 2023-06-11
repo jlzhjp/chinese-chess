@@ -16,14 +16,12 @@ public class WaitingViewController {
     private final String selfUserName;
     private final String roomID;
     private final MessageSocketManager socketManager;
-    private final Runnable onBack;
 
-    public WaitingViewController(MessageSocketManager socketManager, WaitingWindow view, String userName, String roomID, Runnable onBack) {
+    public WaitingViewController(MessageSocketManager socketManager, WaitingWindow view, String userName, String roomID) {
         this.view = view;
         this.selfUserName = userName;
         this.roomID = roomID;
         this.socketManager = socketManager;
-        this.onBack = onBack;
 
         SwingUtilities.invokeLater(() -> {
             view.getUserNameValueLabel().setText(userName);
@@ -49,7 +47,7 @@ public class WaitingViewController {
             info.setBlackPlayer(response.getBlackPlayerName());
             info.setRedPlayer(response.getRedPlayerName());
 
-            ChessViewController controller = new ChessViewController(chessWindow, info, socketManager, onBack);
+            ChessViewController controller = new ChessViewController(chessWindow, info, socketManager);
         });
     }
 }

@@ -17,6 +17,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.net.SocketException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Objects;
@@ -74,7 +75,15 @@ public class ServerViewController {
 
         messageSocketManager = new MessageSocketManager(socketManager);
         messageSocketManager.setMessageListener(listener);
-        messageSocketManager.setErrorHandler(new DefaultErrorHandler(view));
+        messageSocketManager.setErrorHandler(new DefaultErrorHandler(view) {
+            @Override
+            public void onError(Exception ex) {
+                if (ex instanceof SocketException && ex.getMessage().equals("Connection reset")) {
+                    return;
+                }
+                super.onError(ex);
+            }
+        });
 
         try {
             messageSocketManager.start();
@@ -119,7 +128,7 @@ public class ServerViewController {
                 gameTable.getChessPanelModel().put(request.getFrom(), request.getPieceJustEaten());
             }
         } else {
-            response.setResult(Result.SUCCESS);
+            response.setResult(Result.ERROR);
             response.setMessage("对方已拒绝");
         }
 

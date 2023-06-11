@@ -63,9 +63,6 @@ public class SingleSocketManagerBIO extends SocketManager {
                     executeOnMessage(line, sink);
                 }
             } catch (IOException ex) {
-                if (ex.getMessage().equals("Stream closed")) {
-                    return;
-                }
                 catchError(ex);
             }
         });

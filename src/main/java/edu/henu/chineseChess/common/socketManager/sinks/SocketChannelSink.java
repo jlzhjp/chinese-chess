@@ -4,7 +4,6 @@ import edu.henu.chineseChess.common.socketManager.Sink;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
-import java.nio.charset.StandardCharsets;
 
 public class SocketChannelSink implements Sink {
     SocketChannel socketChannel;
