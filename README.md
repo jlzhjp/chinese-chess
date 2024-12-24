@@ -69,3 +69,10 @@ Server:
 Server:
 向所有玩家发送 GameOverResponse(winner), 断开 Socket 连接
 ```
+
+## 许可
+[MIT License](https://github.com/jlzhjp/chinese-chess/blob/main/LICENSE)
+
+图片资源来自网络
+
+feel free to use :)
